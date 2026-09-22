@@ -105,9 +105,8 @@ discovery remains the conservative checkpoint and CI command.
 
 The consumer-owned CI tests Python 3.11, 3.12, and 3.13, builds both distribution
 formats, and imports the installed wheel. Public-repository jobs run only on
-GitHub-hosted runners. While the repository is private, a compatibility job
-uses the pinned Jones reusable workflow; that job is disabled when the
-repository is public, and Jones organization runner policy separately denies
+GitHub-hosted runners. While the repository is private, the same jobs select
+the Jones runner label. Jones organization runner policy separately denies
 public repositories access to Jones self-hosted runners.
 
 Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Report

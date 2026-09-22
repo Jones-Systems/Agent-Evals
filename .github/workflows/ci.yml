@@ -10,29 +10,11 @@ permissions:
   contents: read
 
 jobs:
-  # Private-repository compatibility only. Public repositories are denied
-  # Jones self-hosted runner access by organization runner-group policy.
-  python:
-    if: ${{ github.event.repository.private == true }}
-    uses: Jones-Systems/GitHub-Actions/.github/workflows/python-ci.yml@b0d4576f7724d0b7f748d481675fea62b295c95d
-    with:
-      linux-python-versions: '["3.11", "3.12", "3.13"]'
-      uv-cache-mode: "false"
-      compile-command: "python -m compileall -q src tests"
-      test-command: "PYTHONPATH=src python -m unittest discover -s tests -v"
-      package-enabled: true
-      package-python-version: "3.13"
-      package-build-command: "uv build"
-      package-smoke-command: >-
-        uv run --isolated --no-project
-        --with ./dist/agent_evals-0.1.0-py3-none-any.whl
-        python -c 'import agent_evals; assert agent_evals.SCHEMA == "codex.skill-evaluation/v1"'
-      artifact-name: agent-evals
-
   linux-test:
-    if: ${{ github.event.repository.private == false }}
     name: python / Linux / Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    # The organization runner group denies public repositories, independently
+    # of this routing expression and any workflow edits in a fork.
+    runs-on: ${{ github.event.repository.private && 'jones-systems-vps' || 'ubuntu-latest' }}
     timeout-minutes: 15
     env:
       UV_PYTHON_PREFERENCE: only-managed
@@ -55,9 +37,8 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -v
 
   package:
-    if: ${{ github.event.repository.private == false }}
     name: python / Package
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.private && 'jones-systems-vps' || 'ubuntu-latest' }}
     timeout-minutes: 15
     env:
       UV_PYTHON_PREFERENCE: only-managed
