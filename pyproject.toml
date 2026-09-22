@@ -23,8 +23,3 @@ agent-evals = "agent_evals.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_evals"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/agent_evals/resources/skill-evaluation-v1.schema.json" = "agent_evals/resources/skill-evaluation-v1.schema.json"
-"src/agent_evals/resources/campaign-spec-v1.schema.json" = "agent_evals/resources/campaign-spec-v1.schema.json"
-"src/agent_evals/resources/resolved-campaign-v1.schema.json" = "agent_evals/resources/resolved-campaign-v1.schema.json"
