@@ -162,6 +162,31 @@ class ObjectStoreTests(unittest.TestCase):
                 self.assertTrue(caught.exception.__suppress_context__)
             self.assertEqual(store.read_record(store.put_record(private_record())), private_record())
 
+    def test_cleanup_control_flow_preserves_cancellation(self) -> None:
+        for cancellation in (KeyboardInterrupt("cancel"), SystemExit(7), GeneratorExit()):
+            with self.subTest(cancellation=type(cancellation).__name__), tempfile.TemporaryDirectory() as temporary:
+                store = e.ObjectStore(temporary)
+                with patch.object(object_store_module.os, "unlink", side_effect=cancellation):
+                    with self.assertRaises(type(cancellation)) as caught:
+                        store.put_record(private_record())
+                self.assertIs(caught.exception, cancellation)
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            cancellation = KeyboardInterrupt("cancel")
+            with patch.object(object_store_module.os, "link", side_effect=OSError("/private/primary")), patch.object(object_store_module.os, "unlink", side_effect=cancellation):
+                with self.assertRaises(KeyboardInterrupt) as caught:
+                    store.put_record(private_record())
+            self.assertIs(caught.exception, cancellation)
+            self.assertEqual(caught.exception.__notes__, ["object operation also failed"])
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            primary = KeyboardInterrupt("primary cancel")
+            with patch.object(object_store_module.os, "link", side_effect=primary), patch.object(object_store_module.os, "unlink", side_effect=SystemExit(7)):
+                with self.assertRaises(KeyboardInterrupt) as caught:
+                    store.put_record(private_record())
+            self.assertIs(caught.exception, primary)
+            self.assertEqual(caught.exception.__notes__, ["temporary object cleanup failed"])
+
     def test_filesystem_errors_are_sanitized_without_losing_cleanup_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             store = e.ObjectStore(temporary)

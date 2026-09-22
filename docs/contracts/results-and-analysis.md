@@ -19,17 +19,22 @@ Validation occurs before admission. Objects are immutable and content addressed;
 repeating identical bytes is idempotent and mismatching existing bytes fail.
 Same-directory staging and no-overwrite finalization prevent concurrent writers
 from replacing an admitted object. Files and the parent directory are fsynced.
-Ordinary failures and cancellation unwind the exact writer-owned staging file.
-Uncatchable process/host termination may leave a staging file; this library does
-not sweep it or delete retained objects. A failure after finalization can leave
-the complete immutable object present; callers reconcile by reading its digest.
+Cleanup of the exact writer-owned staging file is attempted on success, failure,
+and ordinary cancellation. Cancellation during cleanup or uncatchable process/
+host termination may leave that exact staging entry for later reconciliation;
+this library does not sweep it or delete retained objects. A failure after
+finalization can leave the complete immutable object present; callers reconcile
+by reading its digest.
 
 Access classes are data labels, not operating-system permissions or publication
 authorization. The root is trusted and must not be modified by an adversarial
 concurrent actor. A content digest proves equality, not authenticity or safety.
 There are no retention enforcement or deletion APIs.
-All filesystem failures at the public storage boundary use fixed diagnostics;
-cleanup failures add a fixed note while preserving the primary failure.
+Ordinary filesystem failures at the public storage boundary use fixed diagnostics.
+Cleanup control-flow exceptions propagate even after an ordinary write failure,
+with only a fixed note preserving the earlier failure. An existing control-flow
+exception stays primary if cleanup also fails. Ordinary cleanup failures add a
+fixed note while preserving an ordinary primary failure.
 `read` and `read_record` bind bytes to the reference's schema and access class,
 and both accept the `PublicContentRef` returned by public manifests directly.
 

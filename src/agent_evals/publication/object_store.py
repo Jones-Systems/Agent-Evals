@@ -212,6 +212,14 @@ class ObjectStore:
             primary = exc
 
         cleanup_error = self._cleanup_stage(stage_path) if stage_path is not None else None
+        if primary is not None and not isinstance(primary, Exception):
+            if cleanup_error is not None:
+                primary.add_note("temporary object cleanup failed")
+            raise primary from None
+        if cleanup_error is not None and not isinstance(cleanup_error, Exception):
+            if primary is not None:
+                cleanup_error.add_note("object operation also failed")
+            raise cleanup_error from None
         if primary is not None:
             if cleanup_error is not None:
                 primary.add_note("temporary object cleanup failed")
