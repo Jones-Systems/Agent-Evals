@@ -104,4 +104,10 @@ Focused offline CLI and conformance checks are:
 discovery remains the conservative checkpoint and CI command.
 
 The consumer-owned CI caller tests Python 3.11, 3.12, and 3.13, builds both
-distribution formats, and imports the installed wheel.
+distribution formats, and imports the installed wheel. Jobs run only on
+GitHub-hosted runners; Jones organization runner policy separately denies
+public repositories access to Jones self-hosted runners.
+
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Report
+security issues using the process in [SECURITY.md](SECURITY.md). Agent-Evals is
+licensed under the [Apache License 2.0](LICENSE).

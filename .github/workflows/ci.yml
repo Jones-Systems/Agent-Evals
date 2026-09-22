@@ -9,18 +9,57 @@ permissions:
   contents: read
 
 jobs:
-  python:
-    uses: Jones-Systems/GitHub-Actions/.github/workflows/python-ci.yml@b0d4576f7724d0b7f748d481675fea62b295c95d
-    with:
-      linux-python-versions: '["3.11", "3.12", "3.13"]'
-      uv-cache-mode: "false"
-      compile-command: "python -m compileall -q src tests"
-      test-command: "PYTHONPATH=src python -m unittest discover -s tests -v"
-      package-enabled: true
-      package-python-version: "3.13"
-      package-build-command: "uv build"
-      package-smoke-command: >-
-        uv run --isolated --no-project
-        --with ./dist/agent_evals-0.1.0-py3-none-any.whl
-        python -c 'import agent_evals; assert agent_evals.SCHEMA == "codex.skill-evaluation/v1"'
-      artifact-name: agent-evals
+  linux-test:
+    name: python / Linux / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_PREFERENCE: only-managed
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+          enable-cache: false
+      - name: Compile
+        run: python -m compileall -q src tests
+      - name: Test
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
+
+  package:
+    name: python / Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UV_PYTHON_PREFERENCE: only-managed
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          python-version: "3.13"
+          activate-environment: true
+          enable-cache: false
+      - name: Build package
+        run: uv build
+      - name: Smoke-test package
+        run: >-
+          uv run --isolated --no-project
+          --with ./dist/agent_evals-0.1.0-py3-none-any.whl
+          python -c 'import agent_evals; assert agent_evals.SCHEMA == "codex.skill-evaluation/v1"'
+      - name: Retain successful package artifacts
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: agent-evals-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
