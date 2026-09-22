@@ -18,7 +18,7 @@ class PublicationTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.store = e.ObjectStore(Path(self.temp.name) / "objects")
+        self.store = e.ObjectStore(self.temp.name)
         self.campaign = e.compile_campaign(make_spec(repetitions=1))
 
     def entries(self, *, missing=False, observed=True, completion="complete"):
@@ -172,6 +172,44 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual(e.publication_decode(e.publication_encode(value)), value)
         with self.assertRaises(e.EvaluationError):
             e.publication_decode('{"schema":"x","schema":"y"}')
+
+    def test_public_references_are_directly_readable(self):
+        ref = e.publish_manifest(self.store, self.sealed(), self.campaign, retention_policy_sha256="f" * 64)
+        public_ref = self.store.read_record(ref).summaries[0]
+        self.assertEqual(self.store.read_record(public_ref), e.PublicSummary("usable", "present"))
+
+    def test_nullable_digest_schema_has_exact_hash_branch(self):
+        for record_type in (e.ExecutionResultImport, e.AnalysisResult):
+            prop = e.publication_json_schema(record_type)["$defs"][record_type.__name__]["properties"]["observed_profile_sha256"]
+            self.assertIn({"type": "null"}, prop["anyOf"])
+            string = next(branch for branch in prop["anyOf"] if branch.get("type") == "string")
+            self.assertEqual(string.get("pattern"), "^[0-9a-f]{64}$")
+            self.assertEqual((string["minLength"], string["maxLength"]), (64, 64))
+
+    def test_all_result_predecessors_are_verified(self):
+        first = self.store.read_record(self.sealed())
+        bad_entry = replace(first.entries[0], execution_ref=replace(first.entries[0].execution_ref, digest="0" * 64))
+        forged_first = self.store.put_record(replace(first, entries=(bad_entry,) + first.entries[1:]))
+        forged_second = self.store.put_record(replace(first, revision=2, predecessor=forged_first))
+        with self.assertRaises(e.EvaluationError):
+            e.seal_result_set(self.store, self.campaign, first.entries, predecessor=forged_second)
+
+    def test_all_analysis_predecessors_are_verified(self):
+        _, mapping_ref, result = self.analysis()
+        bad = replace(result, measures=tuple(replace(item, value=99.0) for item in result.measures))
+        forged_first = self.store.put_record(bad)
+        forged_second = self.store.put_record(replace(result, revision=2, predecessor=forged_first))
+        with self.assertRaises(e.EvaluationError):
+            e.import_analysis_result(self.store, replace(result, revision=3, predecessor=forged_second), mapping_ref, self.campaign)
+
+    def test_revision_limits_are_explicit_in_schema_and_runtime(self):
+        result_set_ref = self.sealed()
+        result_set = self.store.read_record(result_set_ref)
+        with self.assertRaises(e.EvaluationError):
+            self.store.put_record(replace(result_set, revision=65, predecessor=result_set_ref))
+        for record_type in (e.SealedResultSet, e.AnalysisResult):
+            prop = e.publication_json_schema(record_type)["$defs"][record_type.__name__]["properties"]["revision"]
+            self.assertEqual((prop["minimum"], prop["maximum"]), (1, 64))
 
     def test_check_group_catalog_covers_discovered_modules(self):
         tests = Path(__file__).resolve().parent

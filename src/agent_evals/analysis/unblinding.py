@@ -1,12 +1,14 @@
 """Unblinding consumes a persisted terminal result; it never runs analysis."""
 
 from agent_evals.protocol.analysis import AnalysisResult, ComparisonMeasure, UnblindedComparison
-from agent_evals.protocol.publication import require
+from agent_evals.protocol.publication import MAX_REVISIONS, require, validate_publication_record
 from .blinding import verify_mapping
 
 
-def _verify_result(store, result, mapping_ref, packet) -> None:
+def _verify_result(store, result, mapping_ref, packet, *, depth: int = 0) -> None:
+    require(depth < MAX_REVISIONS, "analysis revision chain bound")
     require(type(result) is AnalysisResult, "expected analysis result")
+    validate_publication_record(result)
     require(result.mapping_sha256 == mapping_ref.digest, "analysis mapping mismatch")
     mapping = store.read_record(mapping_ref)
     require(result.packet_ref == mapping.packet_ref, "analysis packet mismatch")
@@ -18,6 +20,7 @@ def _verify_result(store, result, mapping_ref, packet) -> None:
         previous = store.read_record(result.predecessor)
         require(type(previous) is AnalysisResult and previous.packet_ref == result.packet_ref and previous.mapping_sha256 == result.mapping_sha256, "analysis predecessor mismatch")
         require(previous.revision + 1 == result.revision, "analysis revision mismatch")
+        _verify_result(store, previous, mapping_ref, packet, depth=depth + 1)
 
 
 def import_analysis_result(store, result: AnalysisResult, mapping_ref, campaign):

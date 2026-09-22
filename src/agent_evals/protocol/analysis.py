@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from .publication import AdmittedEvidence, ContentRef, Missingness, hash_field, require, validate_content_ref
+from .publication import AdmittedEvidence, ContentRef, Missingness, MAX_REVISIONS, hash_field, require, validate_content_ref
 
 
 @dataclass(frozen=True)
@@ -107,7 +107,7 @@ def validate_analysis_record(value: object) -> None:
         hash_field(value.requested_profile_sha256)
         if value.observed_profile_sha256 is not None:
             hash_field(value.observed_profile_sha256)
-        require(value.revision >= 1 and ((value.revision == 1) == (value.predecessor is None)), "analysis predecessor required")
+        require(1 <= value.revision <= MAX_REVISIONS and ((value.revision == 1) == (value.predecessor is None)), "analysis predecessor required")
         if value.predecessor is not None:
             validate_content_ref(value.predecessor)
             require(value.predecessor.record_schema == ANALYSIS_TYPES[AnalysisResult], "wrong analysis predecessor")

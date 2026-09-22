@@ -4,7 +4,7 @@ from agent_evals.core import digest
 from agent_evals.protocol.campaign import ResolvedCampaign, validate_campaign_record
 from agent_evals.protocol.publication import (
     AdmittedEvidence, ContentRef, ExecutionResultImport, ResultSetEntry,
-    SealedResultSet, require, validate_publication_record,
+    SealedResultSet, MAX_REVISIONS, require, validate_publication_record,
 )
 
 
@@ -15,7 +15,8 @@ def verify_result_set(store, ref: ContentRef, campaign: ResolvedCampaign) -> Sea
     return value
 
 
-def _verify(store, value: SealedResultSet, campaign: ResolvedCampaign) -> None:
+def _verify(store, value: SealedResultSet, campaign: ResolvedCampaign, *, depth: int = 0) -> None:
+    require(depth < MAX_REVISIONS, "result revision chain bound")
     validate_campaign_record(campaign)
     validate_publication_record(value)
     require(value.campaign_sha256 == digest(campaign), "wrong campaign binding")
@@ -41,6 +42,7 @@ def _verify(store, value: SealedResultSet, campaign: ResolvedCampaign) -> None:
         previous = store.read_record(value.predecessor)
         require(type(previous) is SealedResultSet and previous.campaign_sha256 == value.campaign_sha256, "wrong predecessor binding")
         require(previous.revision + 1 == value.revision, "wrong predecessor revision")
+        _verify(store, previous, campaign, depth=depth + 1)
 
 
 def seal_result_set(store, campaign: ResolvedCampaign, entries: tuple[ResultSetEntry, ...], *, predecessor: ContentRef | None = None) -> ContentRef:

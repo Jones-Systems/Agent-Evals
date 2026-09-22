@@ -1,7 +1,7 @@
 """Immutable, content-addressed storage for closed publication records.
 
-``ObjectStore`` uses a local directory trusted by its caller.  The store does
-not establish ownership, permissions, or isolation for that directory and does
+``ObjectStore`` requires an existing, caller-durably-created local directory.
+The store does not establish ownership, permissions, or isolation and does
 not protect against another trusted writer modifying it.  Object names are
 validated content digests; staging and final objects are kept in that same
 directory.
@@ -20,6 +20,7 @@ from typing import Any
 from agent_evals.core import EvaluationError, MAX_BYTES, _pairs
 from agent_evals.protocol.publication import (
     ContentRef,
+    PublicContentRef,
     publication_decode,
     publication_encode,
     validate_content_ref,
@@ -93,21 +94,23 @@ class ObjectStore:
     def __init__(self, root: str | os.PathLike[str]) -> None:
         try:
             supplied = Path(root)
-        except (TypeError, ValueError) as exc:
-            raise EvaluationError("invalid object store root") from exc
+        except (TypeError, ValueError, OSError):
+            raise EvaluationError("invalid object store root") from None
         try:
             if supplied.is_symlink():
                 raise EvaluationError("object store root unavailable")
-            supplied.mkdir(parents=True, exist_ok=True)
             _fail(supplied.is_dir(), "object store root unavailable")
         except EvaluationError:
             raise
-        except OSError as exc:
-            raise EvaluationError("object store root unavailable") from exc
-        self.root = supplied.absolute()
+        except OSError:
+            raise EvaluationError("object store root unavailable") from None
+        try:
+            self.root = supplied.absolute()
+        except OSError:
+            raise EvaluationError("object store root unavailable") from None
 
     @staticmethod
-    def _validate_ref_metadata(ref: ContentRef) -> None:
+    def _validate_ref_metadata(ref: ContentRef | PublicContentRef) -> None:
         validate_content_ref(ref)
         _fail(ref.media_type == _JSON_MEDIA_TYPE, "unsupported object media type")
         expected_access = "public" if ref.record_schema in _PUBLIC_RECORD_SCHEMAS else "private"
@@ -211,10 +214,10 @@ class ObjectStore:
         cleanup_error = self._cleanup_stage(stage_path) if stage_path is not None else None
         if primary is not None:
             if cleanup_error is not None:
-                primary.add_note("temporary object cleanup failed: " + repr(cleanup_error))
+                primary.add_note("temporary object cleanup failed")
             raise primary
         if cleanup_error is not None:
-            raise cleanup_error
+            raise EvaluationError("temporary object cleanup failed") from None
         _fail(result is not None, "object publication did not produce a reference")
         if finalized:
             # Sync after removing the stage so a successful return durably
@@ -239,25 +242,32 @@ class ObjectStore:
         _validate_publication_bytes(data, ref.record_schema)
 
         try:
-            self._validate_existing(ref, data)
-        except FileNotFoundError:
-            pass
-        else:
-            # An idempotent caller may race the publisher that created this
-            # name; establish the parent-directory durability claim here too.
-            self._fsync_root()
-            return ref
-        return self._publish_new(ref, data)
+            try:
+                self._validate_existing(ref, data)
+            except FileNotFoundError:
+                pass
+            else:
+                # An idempotent caller may race the publisher that created this
+                # name; establish the parent-directory durability claim here too.
+                self._fsync_root()
+                return ref
+            return self._publish_new(ref, data)
+        except OSError as exc:
+            error = EvaluationError("object write failed")
+            if "temporary object cleanup failed" in getattr(exc, "__notes__", ()):
+                error.add_note("temporary object cleanup failed")
+            raise error from None
 
-    def read(self, ref: ContentRef) -> bytes:
+    def read(self, ref: ContentRef | PublicContentRef) -> bytes:
         """Read one bounded immutable object without following final symlinks."""
         self._validate_ref_metadata(ref)
         try:
             data = self._read_named(ref.digest)
-        except FileNotFoundError as exc:
-            raise EvaluationError("object unavailable") from exc
+        except OSError:
+            raise EvaluationError("object unavailable") from None
         _fail(len(data) == ref.byte_size, "object size mismatch")
         _fail(hashlib.sha256(data).hexdigest() == ref.digest, "object digest mismatch")
+        _validate_publication_bytes(data, ref.record_schema)
         return data
 
     def put_record(self, value: object, *, access_class: str = "private") -> ContentRef:
@@ -275,7 +285,7 @@ class ObjectStore:
             access_class=access_class,
         )
 
-    def read_record(self, ref: ContentRef) -> object:
+    def read_record(self, ref: ContentRef | PublicContentRef) -> object:
         self._validate_ref_metadata(ref)
         data = self.read(ref)
         try:

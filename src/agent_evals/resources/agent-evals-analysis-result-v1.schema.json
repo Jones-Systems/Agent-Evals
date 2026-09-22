@@ -42,7 +42,9 @@
           "anyOf": [
             {
               "type": "string",
-              "maxLength": 32768
+              "maxLength": 64,
+              "minLength": 64,
+              "pattern": "^[0-9a-f]{64}$"
             },
             {
               "type": "null"
@@ -66,8 +68,8 @@
         },
         "revision": {
           "type": "integer",
-          "minimum": -1000000000000000,
-          "maximum": 1000000000000000
+          "minimum": 1,
+          "maximum": 64
         },
         "predecessor": {
           "anyOf": [

@@ -11,6 +11,10 @@ campaign bindings, reference integrity, ordering, and predecessor relations.
 `ContentRef` contains only a SHA-256 digest, byte size, media type, record schema,
 and access class. It never includes a filesystem location. The caller selects a
 trusted local object-store root independently of these portable references.
+The root must already exist as a directory, not a symlink. Root and ancestor
+creation and their crash durability belong to the caller; `ObjectStore` never
+creates directories. Its fsync guarantee covers object entries within that
+pre-existing, durably-created root.
 Validation occurs before admission. Objects are immutable and content addressed;
 repeating identical bytes is idempotent and mismatching existing bytes fail.
 Same-directory staging and no-overwrite finalization prevent concurrent writers
@@ -24,6 +28,10 @@ Access classes are data labels, not operating-system permissions or publication
 authorization. The root is trusted and must not be modified by an adversarial
 concurrent actor. A content digest proves equality, not authenticity or safety.
 There are no retention enforcement or deletion APIs.
+All filesystem failures at the public storage boundary use fixed diagnostics;
+cleanup failures add a fixed note while preserving the primary failure.
+`read` and `read_record` bind bytes to the reference's schema and access class,
+and both accept the `PublicContentRef` returned by public manifests directly.
 
 ## Sealing and publication
 
@@ -41,6 +49,8 @@ An entry classified usable needs complete execution, matching requested and
 observed profile digests, and verified evidence. Other classifications preserve
 missing and incomplete observations without promoting them. A new revision binds
 its immutable predecessor and increments its revision; old bytes never change.
+Every predecessor is revalidated under the same campaign. Revision chains are
+bounded to 64 revisions, with strictly decreasing predecessor revisions.
 
 `publish_manifest` creates a closed allowlist projection containing only public
 summary refs, the source digest, fixed redaction revision, public access class,
@@ -74,6 +84,8 @@ a terminal result need not imply they matched or that the result is reliable.
 Scores must fit the original bounds, preserve every neutral label, and remain
 null when evidence is absent. Rescoring imports a new `AnalysisResult` revision
 referencing its predecessor; it never executes a judge.
+Every prior analysis revision is revalidated against the original packet and
+mapping, with the same 64-revision bound as result sets.
 
 `unblind` reads and digest-validates a persisted result, rejects pending results
 and altered mappings, then persists an `UnblindedComparison` referencing that

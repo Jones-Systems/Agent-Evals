@@ -20,6 +20,7 @@ RecordSchema = Literal[
 ]
 Classification = Literal["usable", "incomplete", "unavailable", "invalid"]
 Missingness = Literal["present", "missing"]
+MAX_REVISIONS = 64
 
 
 @dataclass(frozen=True)
@@ -107,8 +108,9 @@ def hash_field(value: str) -> None:
     require(type(value) is str and bool(_HASH.fullmatch(value)), "invalid content digest")
 
 
-def validate_content_ref(ref: ContentRef) -> None:
-    _typed(ref, ContentRef)
+def validate_content_ref(ref: ContentRef | PublicContentRef) -> None:
+    require(type(ref) in (ContentRef, PublicContentRef), "invalid content reference")
+    _typed(ref, type(ref))
     hash_field(ref.digest)
     require(0 <= ref.byte_size <= MAX_BYTES, "content byte bound")
 
@@ -132,7 +134,7 @@ def validate_publication_record(value: object) -> None:
             require(value.evidence_ref.record_schema == RECORD_TYPES[AdmittedEvidence], "wrong evidence schema")
     elif type(value) is SealedResultSet:
         hash_field(value.campaign_sha256)
-        require(value.revision >= 1, "invalid revision")
+        require(1 <= value.revision <= MAX_REVISIONS, "invalid revision")
         require((value.revision == 1) == (value.predecessor is None), "predecessor required")
         if value.predecessor is not None:
             validate_content_ref(value.predecessor)
@@ -187,11 +189,18 @@ def publication_decode(text: str) -> object:
 def publication_json_schema(record_type: type) -> dict:
     require(record_type in _records(), "unknown schema type")
     schema = _schema_for(record_type, _records()[record_type])
+    def constrain_digest(prop: dict) -> None:
+        if prop.get("type") == "string":
+            prop.update(minLength=64, maxLength=64, pattern="^[0-9a-f]{64}$")
+        for branch in prop.get("anyOf", []):
+            constrain_digest(branch)
+
     for definition in schema["$defs"].values():
         for name, prop in definition.get("properties", {}).items():
             if name == "digest" or name.endswith("sha256"):
-                if prop.get("type") == "string":
-                    prop.update(minLength=64, maxLength=64, pattern="^[0-9a-f]{64}$")
+                constrain_digest(prop)
             if name == "byte_size":
                 prop.update(minimum=0, maximum=MAX_BYTES)
+            if name == "revision":
+                prop.update(minimum=1, maximum=MAX_REVISIONS)
     return schema

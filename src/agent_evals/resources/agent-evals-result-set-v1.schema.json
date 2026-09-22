@@ -31,8 +31,8 @@
         },
         "revision": {
           "type": "integer",
-          "minimum": -1000000000000000,
-          "maximum": 1000000000000000
+          "minimum": 1,
+          "maximum": 64
         },
         "predecessor": {
           "anyOf": [

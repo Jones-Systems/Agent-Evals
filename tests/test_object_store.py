@@ -24,7 +24,7 @@ def private_record() -> e.AnalysisSpec:
 class ObjectStoreTests(unittest.TestCase):
     def test_record_round_trip_and_access_admission(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             private = private_record()
             private_ref = store.put_record(private)
             self.assertEqual(private_ref.media_type, "application/json")
@@ -40,7 +40,7 @@ class ObjectStoreTests(unittest.TestCase):
 
     def test_raw_admission_is_closed_json_and_leaves_no_file_on_rejection(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             encoded = e.publication_encode(private_record()).encode("utf-8")
             attempts = (
                 (b"plain", "text/plain", PRIVATE_SCHEMA, "private"),
@@ -62,7 +62,7 @@ class ObjectStoreTests(unittest.TestCase):
 
     def test_idempotence_collision_and_reference_integrity(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             data = e.publication_encode(private_record()).encode("utf-8")
             ref = store.put(
                 data,
@@ -93,7 +93,7 @@ class ObjectStoreTests(unittest.TestCase):
 
     def test_safe_reads_reject_symlink_and_nonregular_objects(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             data = e.publication_encode(private_record()).encode("utf-8")
             ref = store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")
             final = store.root / ref.digest
@@ -111,10 +111,67 @@ class ObjectStoreTests(unittest.TestCase):
 
     def test_missing_object_is_sanitized_as_unavailable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             ref = e.ContentRef("0" * 64, 0, "application/json", PRIVATE_SCHEMA, "private")
             with self.assertRaisesRegex(e.EvaluationError, "object unavailable"):
                 store.read(ref)
+
+    def test_root_creation_is_caller_owned(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "absent" / "objects"
+            with self.assertRaises(e.EvaluationError):
+                e.ObjectStore(root)
+            self.assertFalse(root.parent.exists())
+
+    def test_raw_reads_bind_public_access_and_schema(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            private = store.put_record(private_record())
+            with self.assertRaises(e.EvaluationError):
+                store.read(replace(private, record_schema=PUBLIC_SCHEMA, access_class="public"))
+
+    def test_existing_root_rejects_non_directory_and_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            file = Path(temporary) / "file"
+            file.write_bytes(b"fixture")
+            link = Path(temporary) / "link"
+            link.symlink_to(temporary)
+            for root in (file, link):
+                with self.subTest(root=root), self.assertRaises(e.EvaluationError):
+                    e.ObjectStore(root)
+
+    def test_read_and_root_filesystem_failures_are_sanitized(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            ref = store.put_record(private_record())
+            with patch.object(object_store_module.os, "lstat", side_effect=PermissionError("/private/path")):
+                with self.assertRaisesRegex(e.EvaluationError, "^object unavailable$") as caught:
+                    store.read(ref)
+                self.assertTrue(caught.exception.__suppress_context__)
+            with patch.object(object_store_module.Path, "is_dir", side_effect=OSError("/private/path")):
+                with self.assertRaisesRegex(e.EvaluationError, "^object store root unavailable$") as caught:
+                    e.ObjectStore(temporary)
+                self.assertTrue(caught.exception.__suppress_context__)
+
+    def test_cleanup_only_failure_is_sanitized_and_preserves_final_object(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            with patch.object(object_store_module.os, "unlink", side_effect=OSError("/private/stage")):
+                with self.assertRaisesRegex(e.EvaluationError, "^temporary object cleanup failed$") as caught:
+                    store.put_record(private_record())
+                self.assertTrue(caught.exception.__suppress_context__)
+            self.assertEqual(store.read_record(store.put_record(private_record())), private_record())
+
+    def test_filesystem_errors_are_sanitized_without_losing_cleanup_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            store = e.ObjectStore(temporary)
+            with patch.object(object_store_module.os, "link", side_effect=OSError("/private/source")), patch.object(object_store_module.os, "unlink", side_effect=OSError("/private/cleanup")):
+                with self.assertRaises(e.EvaluationError) as caught:
+                    store.put_record(private_record())
+            rendered = str(caught.exception) + str(getattr(caught.exception, "__notes__", []))
+            self.assertNotIn("/private", rendered)
+            self.assertIn("cleanup failed", rendered)
+            self.assertTrue(caught.exception.__suppress_context__)
 
     def test_staging_link_fsync_and_baseexception_failures_clean_exact_stage(self) -> None:
         data = e.publication_encode(private_record()).encode("utf-8")
@@ -126,30 +183,30 @@ class ObjectStoreTests(unittest.TestCase):
         )
         for label, failure in cases:
             with self.subTest(failure=label), tempfile.TemporaryDirectory() as temporary:
-                store = e.ObjectStore(Path(temporary) / "objects")
+                store = e.ObjectStore(temporary)
                 with failure:
-                    expected = KeyboardInterrupt if label == "interrupt" else OSError
+                    expected = KeyboardInterrupt if label == "interrupt" else e.EvaluationError
                     with self.assertRaises(expected):
                         store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")
                 self.assertEqual(tuple(store.root.iterdir()), ())
 
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             with patch.object(object_store_module.os, "fsync", side_effect=OSError("file")):
-                with self.assertRaisesRegex(OSError, "file"):
+                with self.assertRaisesRegex(e.EvaluationError, "object write failed"):
                     store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")
             self.assertEqual(tuple(store.root.iterdir()), ())
 
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             with patch.object(object_store_module.os, "fsync", side_effect=[None, OSError("directory")]):
-                with self.assertRaises(OSError):
+                with self.assertRaises(e.EvaluationError):
                     store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")
             self.assertEqual(tuple(path for path in store.root.iterdir() if path.name.endswith(".tmp")), ())
             self.assertEqual(store.read_record(store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")), e.publication_decode(data.decode("utf-8")))
 
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             with patch.object(object_store_module.os, "link", side_effect=KeyboardInterrupt("primary")), patch.object(object_store_module.os, "unlink", side_effect=OSError("cleanup")):
                 with self.assertRaisesRegex(KeyboardInterrupt, "primary"):
                     store.put(data, media_type="application/json", record_schema=PRIVATE_SCHEMA, access_class="private")
@@ -157,7 +214,7 @@ class ObjectStoreTests(unittest.TestCase):
 
     def test_concurrent_publishers_converge_without_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            store = e.ObjectStore(Path(temporary) / "objects")
+            store = e.ObjectStore(temporary)
             value = private_record()
             start = threading.Barrier(8)
 
