@@ -7,9 +7,12 @@ from dataclasses import asdict, replace
 from importlib import resources
 import io
 import json
+import os
 from pathlib import Path
+import stat
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 import agent_evals as e
 from agent_evals.cli import main
@@ -191,6 +194,189 @@ class PortableCoreTests(unittest.TestCase):
             ).verdict,
             "failed",
         )
+        with self.assertRaises(e.EvaluationError):
+            e.score_run(
+                self.case,
+                run,
+                rubric,
+                assessment=replace(assessment, packet_sha256="0" * 64),
+            )
+        with self.assertRaises(e.EvaluationError):
+            e.score_run(
+                self.case,
+                run,
+                rubric,
+                assessment=assessment,
+                human_review=replace(review, rubric_sha256="0" * 64),
+            )
+
+    def test_evidence_input_rubric_and_control_tampering_are_rejected(self) -> None:
+        runs = tuple(make_run(self.case, arm) for arm in e.ARMS)
+        changed = replace(
+            runs[0].evidence,
+            observation=replace(runs[0].evidence.observation, response="changed"),
+        )
+        for run in (
+            replace(runs[0], evidence=changed),
+            replace(runs[0], case_sha256="0" * 64),
+            replace(runs[0], input_sha256="0" * 64),
+        ):
+            with self.subTest(run=run.run_id), self.assertRaises(e.EvaluationError):
+                e.score_run(self.case, run, self.rubric)
+        with self.assertRaises(e.EvaluationError):
+            e.score_run(
+                self.case,
+                runs[0],
+                replace(self.rubric, case_sha256="0" * 64),
+            )
+
+        forged_control_evidence = replace(
+            runs[2].evidence,
+            observation=replace(
+                runs[2].evidence.observation,
+                provenance=FIXTURE_SOURCE,
+                response="ready",
+            ),
+        )
+        forged_control = replace(
+            runs[2],
+            evidence=forged_control_evidence,
+            evidence_sha256=e.digest(forged_control_evidence),
+        )
+        with self.assertRaises(e.EvaluationError):
+            e.score_run(self.case, forged_control, self.rubric)
+
+        extra_asset_evidence = replace(
+            runs[0].evidence,
+            assets=runs[0].evidence.assets + (e.Asset("unlisted.txt", "synthetic"),),
+        )
+        with self.assertRaises(e.EvaluationError):
+            e.score_run(
+                self.case,
+                replace(
+                    runs[0],
+                    evidence=extra_asset_evidence,
+                    evidence_sha256=e.digest(extra_asset_evidence),
+                ),
+                self.rubric,
+            )
+
+    def test_missing_events_metrics_and_partial_evidence_remain_missing(self) -> None:
+        run = make_run(self.case, "skill")
+        missing_events_evidence = replace(
+            run.evidence,
+            observation=replace(run.evidence.observation, events=None),
+        )
+        missing_events = replace(
+            run,
+            evidence=missing_events_evidence,
+            evidence_sha256=e.digest(missing_events_evidence),
+        )
+        score = e.score_run(self.case, missing_events, self.rubric)
+        self.assertEqual((score.status, score.verdict), ("partial", "not_scored"))
+        self.assertIsNone(score.measures[1].value)
+
+        metric_rubric = replace(
+            self.rubric,
+            checks=self.rubric.checks
+            + (e.Check("latency", "efficiency", "metric_at_most", "wall_ms", 100),),
+        )
+        metric_score = e.score_run(self.case, run, metric_rubric)
+        self.assertEqual(metric_score.status, "partial")
+        self.assertIsNone(metric_score.measures[-1].value)
+
+        partial_evidence = replace(
+            run.evidence,
+            observation=replace(run.evidence.observation, status="partial"),
+        )
+        partial_run = replace(
+            run,
+            status="partial",
+            evidence=partial_evidence,
+            evidence_sha256=e.digest(partial_evidence),
+        )
+        self.assertEqual(
+            e.score_run(self.case, partial_run, self.rubric).status,
+            "partial",
+        )
+
+    def test_judge_failure_is_sanitized_without_losing_checks(self) -> None:
+        run = make_run(self.case, "baseline")
+        judge = Mock(side_effect=RuntimeError("private provider response"))
+        score = e.score_run(self.case, run, self.rubric, judge=judge)
+        self.assertEqual((score.status, score.verdict), ("inconclusive", "not_scored"))
+        self.assertEqual(score.assessment.status, "unavailable")
+        self.assertEqual(score.measures[0].value, 1.0)
+        self.assertNotIn("private provider", e.encode(score))
+        self.assertEqual(
+            score,
+            e.score_run(self.case, run, self.rubric, assessment=score.assessment),
+        )
+
+    def test_comparison_rejects_arm_variant_score_and_type_tampering(self) -> None:
+        runs = tuple(make_run(self.case, arm) for arm in e.ARMS)
+        scores = tuple(e.score_run(self.case, run, self.rubric) for run in runs)
+        forged_type = replace(
+            scores[0],
+            measures=(e.Measure("quality", True), *scores[0].measures[1:]),
+        )
+        candidates = (
+            ((runs[0], runs[0], runs[2]), scores),
+            (runs, tuple(reversed(scores))),
+            (runs, (replace(scores[0], verdict="failed"), *scores[1:])),
+            (runs, (forged_type, *scores[1:])),
+        )
+        for bad_runs, bad_scores in candidates:
+            with self.assertRaises(e.EvaluationError):
+                e.compare(
+                    self.case,
+                    VARIANT,
+                    self.rubric,
+                    bad_runs,
+                    bad_scores,
+                )
+        with self.assertRaises(e.EvaluationError):
+            e.compare(
+                self.case,
+                replace(VARIANT, version=2),
+                self.rubric,
+                runs,
+                scores,
+            )
+
+    def test_persisted_result_record_round_trips(self) -> None:
+        run = make_run(self.case, "baseline")
+        rubric = replace(
+            self.rubric,
+            judge_required=True,
+            judge_instructions="Assess admitted public evidence.",
+        )
+        judge_runtime = e.RuntimeTuple("example", "judge", "r1", "high", "test", "r1")
+        assessment = e.Assessment(
+            e.Provenance("judge", "judge-test", "v1", True),
+            e.digest(e.judge_packet(run, rubric)),
+            judge_runtime,
+            judge_runtime,
+            "judge-observation",
+            "complete",
+            (e.Measure("quality", 0.5),),
+        )
+        review = e.HumanReview(
+            e.Provenance("human", "review-test", "v1", True),
+            run.evidence_sha256,
+            e.digest(rubric),
+            "approved",
+        )
+        score = e.score_run(
+            self.case,
+            run,
+            rubric,
+            assessment=assessment,
+            human_review=review,
+        )
+        for record in (run, score, assessment, review):
+            with self.subTest(kind=type(record).__name__):
+                self.assertEqual(e.decode(e.encode(record)), record)
 
     def test_portable_surface_has_no_execution_or_workspace_api(self) -> None:
         self.assertFalse(hasattr(e, "AgentInput"))
@@ -237,6 +423,54 @@ class PortableCoreTests(unittest.TestCase):
                 self.assertEqual(main(["parse", str(paths["case"])]), 2)
             self.assertNotIn("private malformed payload", errors.getvalue())
             self.assertEqual(json.loads(errors.getvalue())["authority_effect"], "none")
+
+    def test_cli_reader_refuses_symlinks_and_nonregular_files(self) -> None:
+        from agent_evals.cli import _read_record
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            regular = root / "case.json"
+            regular.write_text(e.encode(self.case), encoding="utf-8")
+            alias = root / "alias.json"
+            alias.symlink_to(regular)
+            for path in (alias, root):
+                with self.subTest(path=path.name), self.assertRaises(e.EvaluationError):
+                    _read_record(str(path))
+
+    def test_cli_reader_refuses_missing_required_open_safeguards(self) -> None:
+        import agent_evals.cli as cli
+
+        for safeguard in ("O_NOFOLLOW", "O_NONBLOCK"):
+            with (
+                self.subTest(safeguard=safeguard),
+                patch.object(cli.os, safeguard, None),
+                patch.object(cli.os, "open") as opened,
+                self.assertRaises(e.EvaluationError),
+            ):
+                cli._read_record("selected.json")
+            opened.assert_not_called()
+
+    def test_cli_reader_bounds_growth_on_one_descriptor_and_always_closes(self) -> None:
+        from agent_evals.cli import _read_record
+
+        descriptor = 17
+        metadata = os.stat_result(
+            (stat.S_IFREG | 0o600, 0, 0, 1, 0, 0, 1, 0, 0, 0)
+        )
+        with (
+            patch("agent_evals.cli.os.open", return_value=descriptor) as opened,
+            patch("agent_evals.cli.os.fstat", return_value=metadata),
+            patch(
+                "agent_evals.cli.os.read",
+                return_value=b"x" * (e.MAX_BYTES + 1),
+            ) as read,
+            patch("agent_evals.cli.os.close") as closed,
+        ):
+            with self.assertRaises(e.EvaluationError):
+                _read_record("selected.json")
+        opened.assert_called_once()
+        read.assert_called_once_with(descriptor, e.MAX_BYTES + 1)
+        closed.assert_called_once_with(descriptor)
 
 
 if __name__ == "__main__":
