@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from agent_evals.core import EvaluationError, digest
-from agent_evals.protocol.campaign import CampaignSpec, ResolvedCampaign, TrialPlan, validate_campaign_record
+from dataclasses import asdict
+import json
+
+from agent_evals.core import EvaluationError, MAX_BYTES, digest
+from agent_evals.protocol.campaign import CampaignSpec, ResolvedCampaign, TrialPlan, campaign_encode, validate_campaign_record
 from .counterbalance import arm_order
 
 
@@ -27,11 +30,7 @@ def _check_budget_bounds(spec: CampaignSpec) -> None:
             raise EvaluationError("campaign budget overflow")
 
 
-def compile_campaign(spec: CampaignSpec) -> ResolvedCampaign:
-    """Resolve order and immutable IDs without creating jobs or spending budgets."""
-    validate_campaign_record(spec)
-    _check_budget_bounds(spec)
-    spec_sha256 = digest(spec)
+def _expected_trials(spec: CampaignSpec, spec_sha256: str) -> tuple[TrialPlan, ...]:
     assignments = {(item.case_id, item.arm_id): item for item in spec.profile_matrix}
     trials: list[TrialPlan] = []
     for case_index, case in enumerate(spec.cases):
@@ -57,12 +56,41 @@ def compile_campaign(spec: CampaignSpec) -> ResolvedCampaign:
                     requested_profile_sha256=assignment.requested_profile.sha256,
                     allocations=assignment.allocations,
                 ))
+    return tuple(trials)
+
+
+def _preflight_wire_size(spec: CampaignSpec) -> None:
+    """Reject obvious expansion before allocating the complete trial tuple."""
+    assignments = {(item.case_id, item.arm_id): item for item in spec.profile_matrix}
+    compact_spec_bytes = len(json.dumps(asdict(spec), sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    compact_trial_bytes = 0
+    for case_index, case in enumerate(spec.cases):
+        for arm_id in arm_order(spec.counterbalance, spec.arms, case_index, 0):
+            assignment = assignments[(case.case_id, arm_id)]
+            trial = TrialPlan(
+                f"trial:{'0' * 64}", case.case_id, case.case_sha256,
+                case.input_sha256, arm_id, 0, "evaluation",
+                assignment.requested_profile, assignment.requested_profile.sha256,
+                assignment.allocations,
+            )
+            compact_trial_bytes += len(json.dumps(asdict(trial), sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    if compact_spec_bytes + compact_trial_bytes * spec.repetitions > MAX_BYTES:
+        raise EvaluationError("resolved campaign byte bound")
+
+
+def compile_campaign(spec: CampaignSpec) -> ResolvedCampaign:
+    """Resolve order and immutable IDs without creating jobs or spending budgets."""
+    validate_campaign_record(spec)
+    campaign_encode(spec)
+    _check_budget_bounds(spec)
+    spec_sha256 = digest(spec)
+    _preflight_wire_size(spec)
     result = ResolvedCampaign(
         campaign_spec=spec,
         campaign_spec_sha256=spec_sha256,
         compiler_revision=COMPILER_REVISION,
         counterbalance_revision=spec.counterbalance.algorithm_revision,
-        trials=tuple(trials),
+        trials=_expected_trials(spec, spec_sha256),
     )
-    validate_campaign_record(result)
+    campaign_encode(result)
     return result

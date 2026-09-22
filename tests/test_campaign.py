@@ -171,10 +171,49 @@ class CampaignCompilerTests(unittest.TestCase):
 
     def test_resolved_decoder_rejects_tampered_order_or_trial_identity(self) -> None:
         resolved = e.compile_campaign(make_spec())
+        tampered = replace(
+            resolved,
+            trials=(replace(resolved.trials[0], case_sha256="f" * 64),) + resolved.trials[1:],
+        )
+        with self.assertRaises(e.EvaluationError):
+            e.validate_campaign_record(tampered)
+        with self.assertRaises(e.EvaluationError):
+            e.campaign_encode(tampered)
         raw = json.loads(e.campaign_encode(resolved))
         raw["data"]["trials"][0]["trial_id"] = "trial:tampered"
         with self.assertRaises(e.EvaluationError):
             e.campaign_decode(json.dumps(raw))
+
+    def test_compile_rejects_wire_amplification_before_returning_a_result(self) -> None:
+        spec = make_spec()
+        arms = tuple(f"arm-{index}" for index in range(64))
+        assignments = tuple(
+            e.ProfileAssignment(
+                spec.cases[0].case_id, arm, profile("model-a"),
+                (e.BudgetLimit("input_tokens", "trial", "tokens", 1),),
+            )
+            for arm in arms
+        )
+        large = replace(
+            spec, cases=(spec.cases[0],), arms=arms, repetitions=64,
+            profile_matrix=assignments, intentionally_varied_dimensions=(),
+            budget_policy=replace(
+                spec.budget_policy,
+                limits=tuple(
+                    replace(limit, maximum=10000)
+                    if limit.metric == "input_tokens" and limit.scope == "campaign"
+                    else limit
+                    for limit in spec.budget_policy.limits
+                ),
+            ),
+        )
+        self.assertLess(len(e.campaign_encode(large).encode("utf-8")), e.MAX_BYTES)
+        with self.assertRaisesRegex(e.EvaluationError, "resolved campaign byte bound"):
+            e.compile_campaign(large)
+
+    def test_decoder_sanitizes_invalid_unicode(self) -> None:
+        with self.assertRaisesRegex(e.EvaluationError, "invalid Unicode text"):
+            e.campaign_decode("\ud800")
 
 
 if __name__ == "__main__":

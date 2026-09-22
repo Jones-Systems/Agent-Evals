@@ -204,6 +204,12 @@ def _validate_resolved(resolved: ResolvedCampaign) -> None:
         identities.add((trial.case_id, trial.arm_id, trial.repetition, trial.stage))
         trial_ids.add(trial.trial_id)
     _fail(len(identities) == expected_count and len(trial_ids) == expected_count, "duplicate resolved trial")
+    from agent_evals.campaign.compiler import _check_budget_bounds, _expected_trials
+    _check_budget_bounds(resolved.campaign_spec)
+    _fail(
+        resolved.trials == _expected_trials(resolved.campaign_spec, resolved.campaign_spec_sha256),
+        "noncanonical resolved campaign",
+    )
 
 
 def validate_campaign_record(value: CampaignSpec | ResolvedCampaign) -> None:
@@ -228,8 +234,13 @@ def campaign_encode(value: CampaignSpec | ResolvedCampaign) -> str:
 
 
 def campaign_decode(text: str) -> CampaignSpec | ResolvedCampaign:
-    _fail(type(text) is str and len(text.encode("utf-8")) <= MAX_BYTES, "record byte bound")
+    _fail(type(text) is str, "record byte bound")
     try:
+        try:
+            encoded = text.encode("utf-8")
+        except UnicodeError:
+            raise EvaluationError("invalid Unicode text") from None
+        _fail(len(encoded) <= MAX_BYTES, "record byte bound")
         raw = json.loads(text, object_pairs_hook=_pairs, parse_constant=lambda _: (_ for _ in ()).throw(EvaluationError("nonfinite JSON")))
         _fail(type(raw) is dict and set(raw) == {"schema", "kind", "data"}, "unknown envelope")
         choices = {"CampaignSpec": (CAMPAIGN_SCHEMA, CampaignSpec), "ResolvedCampaign": (RESOLVED_CAMPAIGN_SCHEMA, ResolvedCampaign)}
@@ -238,9 +249,6 @@ def campaign_decode(text: str) -> CampaignSpec | ResolvedCampaign:
         _fail(raw["schema"] == schema, "unknown schema or kind")
         result = _typed(raw["data"], record_type, decode=True)
         validate_campaign_record(result)
-        if type(result) is ResolvedCampaign:
-            from agent_evals.campaign.compiler import compile_campaign
-            _fail(result == compile_campaign(result.campaign_spec), "noncanonical resolved campaign")
         campaign_encode(result)
         return result
     except EvaluationError:
