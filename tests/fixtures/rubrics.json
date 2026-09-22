@@ -1,0 +1,384 @@
+[
+  {
+    "data": {
+      "case_sha256": "dfdb611ed9438d4fbd133c5d663f1ba45e3c14aa5f236199c62ebd3adf114755",
+      "checks": [
+        {
+          "check_id": "activation",
+          "dimension": "process",
+          "expected": true,
+          "operation": "skill_activation",
+          "target": "backlog"
+        },
+        {
+          "check_id": "compact-response",
+          "dimension": "style",
+          "expected": 240,
+          "operation": "response_max_chars",
+          "target": ""
+        },
+        {
+          "check_id": "completion",
+          "dimension": "reliability",
+          "expected": true,
+          "operation": "completed",
+          "target": ""
+        },
+        {
+          "check_id": "tool-budget",
+          "dimension": "efficiency",
+          "expected": 4,
+          "operation": "metric_at_most",
+          "target": "tool_calls"
+        },
+        {
+          "check_id": "item-state",
+          "dimension": "quality",
+          "expected": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: deferred\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\ndefer_reason: Awaiting fixture results.\nresume_when: Fixture results are recorded.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\nhistory:\n  - \"2026-09-05: ready -> deferred: fixture deferral\"\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/items/BL-0001.md"
+        },
+        {
+          "check_id": "registry-state",
+          "dimension": "quality",
+          "expected": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | deferred | P2 | improvement | Fixture results are recorded. | items/BL-0001.md |\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/registry.md"
+        },
+        {
+          "check_id": "validated",
+          "dimension": "process",
+          "expected": true,
+          "operation": "event_present",
+          "target": "backlog.validated"
+        },
+        {
+          "check_id": "fixture-instructions",
+          "dimension": "process",
+          "expected": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n",
+          "operation": "file_equals",
+          "target": "AGENTS.md"
+        },
+        {
+          "check_id": "fixture-spec",
+          "dimension": "process",
+          "expected": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n",
+          "operation": "file_equals",
+          "target": "docs/engineering-specs/backlog-project-capability-system.md"
+        }
+      ],
+      "judge_instructions": "",
+      "judge_required": false,
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "rubric_id": "backlog-explicit-rubric",
+      "version": 1
+    },
+    "kind": "Rubric",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "case_sha256": "aabf81e11e0596b60a6ffbd2cf83d8c437160a38bae1336cc438004707885133",
+      "checks": [
+        {
+          "check_id": "activation",
+          "dimension": "process",
+          "expected": true,
+          "operation": "skill_activation",
+          "target": "backlog"
+        },
+        {
+          "check_id": "compact-response",
+          "dimension": "style",
+          "expected": 240,
+          "operation": "response_max_chars",
+          "target": ""
+        },
+        {
+          "check_id": "completion",
+          "dimension": "reliability",
+          "expected": true,
+          "operation": "completed",
+          "target": ""
+        },
+        {
+          "check_id": "tool-budget",
+          "dimension": "efficiency",
+          "expected": 4,
+          "operation": "metric_at_most",
+          "target": "tool_calls"
+        },
+        {
+          "check_id": "item-state",
+          "dimension": "quality",
+          "expected": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: deferred\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\ndefer_reason: Awaiting fixture results.\nresume_when: Fixture results are recorded.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\nhistory:\n  - \"2026-09-05: ready -> deferred: fixture deferral\"\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/items/BL-0001.md"
+        },
+        {
+          "check_id": "registry-state",
+          "dimension": "quality",
+          "expected": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | deferred | P2 | improvement | Fixture results are recorded. | items/BL-0001.md |\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/registry.md"
+        },
+        {
+          "check_id": "validated",
+          "dimension": "process",
+          "expected": true,
+          "operation": "event_present",
+          "target": "backlog.validated"
+        },
+        {
+          "check_id": "fixture-instructions",
+          "dimension": "process",
+          "expected": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n",
+          "operation": "file_equals",
+          "target": "AGENTS.md"
+        },
+        {
+          "check_id": "fixture-spec",
+          "dimension": "process",
+          "expected": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n",
+          "operation": "file_equals",
+          "target": "docs/engineering-specs/backlog-project-capability-system.md"
+        }
+      ],
+      "judge_instructions": "",
+      "judge_required": false,
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "rubric_id": "backlog-implicit-rubric",
+      "version": 1
+    },
+    "kind": "Rubric",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "case_sha256": "55f3cd823b106c66e9cb8a8206c10eb6145b1653c041978ccc5dcf3441fc9d7e",
+      "checks": [
+        {
+          "check_id": "activation",
+          "dimension": "process",
+          "expected": true,
+          "operation": "skill_activation",
+          "target": "backlog"
+        },
+        {
+          "check_id": "compact-response",
+          "dimension": "style",
+          "expected": 240,
+          "operation": "response_max_chars",
+          "target": ""
+        },
+        {
+          "check_id": "completion",
+          "dimension": "reliability",
+          "expected": true,
+          "operation": "completed",
+          "target": ""
+        },
+        {
+          "check_id": "tool-budget",
+          "dimension": "efficiency",
+          "expected": 4,
+          "operation": "metric_at_most",
+          "target": "tool_calls"
+        },
+        {
+          "check_id": "item-state",
+          "dimension": "quality",
+          "expected": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: deferred\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\ndefer_reason: Awaiting fixture results.\nresume_when: Fixture results are recorded.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\nhistory:\n  - \"2026-09-05: ready -> deferred: fixture deferral\"\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/items/BL-0001.md"
+        },
+        {
+          "check_id": "registry-state",
+          "dimension": "quality",
+          "expected": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | deferred | P2 | improvement | Fixture results are recorded. | items/BL-0001.md |\n",
+          "operation": "file_equals",
+          "target": "docs/backlog/registry.md"
+        },
+        {
+          "check_id": "validated",
+          "dimension": "process",
+          "expected": true,
+          "operation": "event_present",
+          "target": "backlog.validated"
+        },
+        {
+          "check_id": "fixture-instructions",
+          "dimension": "process",
+          "expected": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n",
+          "operation": "file_equals",
+          "target": "AGENTS.md"
+        },
+        {
+          "check_id": "fixture-spec",
+          "dimension": "process",
+          "expected": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n",
+          "operation": "file_equals",
+          "target": "docs/engineering-specs/backlog-project-capability-system.md"
+        }
+      ],
+      "judge_instructions": "",
+      "judge_required": false,
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "rubric_id": "backlog-contextual-rubric",
+      "version": 1
+    },
+    "kind": "Rubric",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "case_sha256": "310b6394710128557eabfc54bd290f173775e77f927dd485dbe5580bf8116fbd",
+      "checks": [
+        {
+          "check_id": "activation",
+          "dimension": "process",
+          "expected": false,
+          "operation": "skill_activation",
+          "target": "backlog"
+        },
+        {
+          "check_id": "compact-response",
+          "dimension": "style",
+          "expected": 240,
+          "operation": "response_max_chars",
+          "target": ""
+        },
+        {
+          "check_id": "completion",
+          "dimension": "reliability",
+          "expected": true,
+          "operation": "completed",
+          "target": ""
+        },
+        {
+          "check_id": "tool-budget",
+          "dimension": "efficiency",
+          "expected": 4,
+          "operation": "metric_at_most",
+          "target": "tool_calls"
+        },
+        {
+          "check_id": "no-edit",
+          "dimension": "quality",
+          "expected": true,
+          "operation": "unchanged",
+          "target": ""
+        },
+        {
+          "check_id": "response",
+          "dimension": "quality",
+          "expected": "pending connections",
+          "operation": "response_contains",
+          "target": ""
+        },
+        {
+          "check_id": "no-backlog-operation",
+          "dimension": "process",
+          "expected": true,
+          "operation": "event_absent",
+          "target": "backlog.validated"
+        }
+      ],
+      "judge_instructions": "",
+      "judge_required": false,
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "rubric_id": "backlog-near-miss-rubric",
+      "version": 1
+    },
+    "kind": "Rubric",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "case_sha256": "db9d3cfaf3d6315807314410f72c579687c32db10fc643cb07512f5a2c93ae07",
+      "checks": [
+        {
+          "check_id": "activation",
+          "dimension": "process",
+          "expected": false,
+          "operation": "skill_activation",
+          "target": "backlog"
+        },
+        {
+          "check_id": "compact-response",
+          "dimension": "style",
+          "expected": 240,
+          "operation": "response_max_chars",
+          "target": ""
+        },
+        {
+          "check_id": "completion",
+          "dimension": "reliability",
+          "expected": true,
+          "operation": "completed",
+          "target": ""
+        },
+        {
+          "check_id": "tool-budget",
+          "dimension": "efficiency",
+          "expected": 4,
+          "operation": "metric_at_most",
+          "target": "tool_calls"
+        },
+        {
+          "check_id": "no-edit",
+          "dimension": "quality",
+          "expected": true,
+          "operation": "unchanged",
+          "target": ""
+        },
+        {
+          "check_id": "response",
+          "dimension": "quality",
+          "expected": "ready",
+          "operation": "response_equals",
+          "target": ""
+        },
+        {
+          "check_id": "no-backlog-operation",
+          "dimension": "process",
+          "expected": true,
+          "operation": "event_absent",
+          "target": "backlog.validated"
+        }
+      ],
+      "judge_instructions": "",
+      "judge_required": false,
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "rubric_id": "backlog-negative-control-rubric",
+      "version": 1
+    },
+    "kind": "Rubric",
+    "schema": "codex.skill-evaluation/v1"
+  }
+]
