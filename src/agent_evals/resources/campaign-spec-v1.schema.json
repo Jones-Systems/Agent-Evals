@@ -1,0 +1,382 @@
+{
+  "$defs": {
+    "BudgetLimit": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        },
+        "metric": {
+          "enum": [
+            "input_tokens",
+            "output_tokens",
+            "tool_calls",
+            "wall_time"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "trial",
+            "campaign"
+          ]
+        },
+        "unit": {
+          "enum": [
+            "tokens",
+            "calls",
+            "milliseconds"
+          ]
+        }
+      },
+      "required": [
+        "metric",
+        "scope",
+        "unit",
+        "maximum"
+      ],
+      "type": "object"
+    },
+    "BudgetPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "exhaustion_disposition": {
+          "enum": [
+            "reject",
+            "mark_incomplete"
+          ]
+        },
+        "limits": {
+          "items": {
+            "$ref": "#/$defs/BudgetLimit"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        }
+      },
+      "required": [
+        "limits",
+        "exhaustion_disposition"
+      ],
+      "type": "object"
+    },
+    "CampaignCase": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "case_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "input_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_sha256",
+        "input_sha256"
+      ],
+      "type": "object"
+    },
+    "CampaignSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "arms": {
+          "items": {
+            "maxLength": 32768,
+            "type": "string"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "budget_policy": {
+          "$ref": "#/$defs/BudgetPolicy"
+        },
+        "campaign_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/CampaignCase"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "counterbalance": {
+          "$ref": "#/$defs/CounterbalancePolicy"
+        },
+        "input_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "intentionally_varied_dimensions": {
+          "items": {
+            "enum": [
+              "provider",
+              "surface",
+              "model",
+              "model_revision",
+              "reasoning",
+              "runtime",
+              "runtime_revision",
+              "agent_topology",
+              "tool_policy_ref",
+              "network_policy_ref"
+            ]
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "outcome_policy": {
+          "$ref": "#/$defs/OutcomePolicy"
+        },
+        "profile_matrix": {
+          "items": {
+            "$ref": "#/$defs/ProfileAssignment"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "repetitions": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        },
+        "safety_stop_policy_refs": {
+          "items": {
+            "maxLength": 32768,
+            "type": "string"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "suite_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "version": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "version",
+        "suite_sha256",
+        "input_sha256",
+        "cases",
+        "arms",
+        "repetitions",
+        "profile_matrix",
+        "intentionally_varied_dimensions",
+        "outcome_policy",
+        "budget_policy",
+        "safety_stop_policy_refs",
+        "counterbalance"
+      ],
+      "type": "object"
+    },
+    "CounterbalancePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm_revision": {
+          "enum": [
+            "agent-evals-counterbalance-v1"
+          ]
+        },
+        "method": {
+          "enum": [
+            "fixed",
+            "balanced_rotation"
+          ]
+        },
+        "seed": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "method",
+        "seed",
+        "algorithm_revision"
+      ],
+      "type": "object"
+    },
+    "OutcomePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis_unit": {
+          "enum": [
+            "trial",
+            "case"
+          ]
+        },
+        "failure_rule": {
+          "enum": [
+            "count_as_failure",
+            "report_separately"
+          ]
+        },
+        "lower_bound": {
+          "type": "number"
+        },
+        "missingness_rule": {
+          "enum": [
+            "fail_closed",
+            "report_separately"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "pass_rate",
+            "dimension_score",
+            "resource_use"
+          ]
+        },
+        "retry_rule": {
+          "enum": [
+            "no_retry",
+            "preserve_trial_identity"
+          ]
+        },
+        "uncertainty_rule": {
+          "enum": [
+            "descriptive_only",
+            "none"
+          ]
+        },
+        "upper_bound": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "outcome",
+        "lower_bound",
+        "upper_bound",
+        "analysis_unit",
+        "uncertainty_rule",
+        "failure_rule",
+        "missingness_rule",
+        "retry_rule"
+      ],
+      "type": "object"
+    },
+    "ProfileAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "allocations": {
+          "items": {
+            "$ref": "#/$defs/BudgetLimit"
+          },
+          "maxItems": 100000,
+          "type": "array"
+        },
+        "arm_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "case_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "requested_profile": {
+          "$ref": "#/$defs/RequestedExecutionProfile"
+        }
+      },
+      "required": [
+        "case_id",
+        "arm_id",
+        "requested_profile",
+        "allocations"
+      ],
+      "type": "object"
+    },
+    "RequestedExecutionProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_topology": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "model_revision": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "network_policy_ref": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "provider": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "reasoning": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "runtime": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "runtime_revision": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "surface": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "tool_policy_ref": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "surface",
+        "model",
+        "model_revision",
+        "reasoning",
+        "runtime",
+        "runtime_revision",
+        "agent_topology",
+        "tool_policy_ref",
+        "network_policy_ref"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "data": {
+      "$ref": "#/$defs/CampaignSpec"
+    },
+    "kind": {
+      "const": "CampaignSpec"
+    },
+    "schema": {
+      "const": "codex.agent-evals-campaign-spec/v1"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "title": "codex.agent-evals-campaign-spec/v1",
+  "type": "object"
+}

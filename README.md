@@ -2,7 +2,8 @@
 
 Agent-Evals provides a workspace-independent, standard-library-first Python
 core for validating, hashing, grading, and comparing bounded agent-evaluation
-records. It preserves the existing codex.skill-evaluation/v1 wire contract.
+records. It also compiles closed campaign specifications into deterministic,
+workspace-independent trial plans. Each layer has an independent wire contract.
 
 ## Install and use
 
@@ -25,17 +26,22 @@ Library callers can use the same operations directly:
     content_id = digest(record)
     normalized_json = encode(record)
 
+Campaign callers construct a `CampaignSpec` and call `compile_campaign`. The
+result contains stable trial identities and requested execution profiles only;
+it does not create jobs, attempts, workspaces, or runtime observations.
+
 ## Architecture and status
 
-This first layer owns closed dataclasses, semantic validation, canonical SHA-256
+The portable core owns closed dataclasses, semantic validation, canonical SHA-256
 content hashes, deterministic checks and measures, blinded judge packets,
 human-review bindings, rescoring, matched-triplet comparison, and the packaged
 JSON Schema. The implementation uses only the Python standard library at
 runtime.
 
-It deliberately does not create or capture workspaces, invoke a provider or
-agent runtime, import connector/browser code, manage campaigns, publish
-results, or qualify serving behavior. Hashes establish content equality, not
+The campaign compiler adds only immutable allocation and ordering. It
+deliberately does not create or capture workspaces, invoke a provider or agent
+runtime, import connector/browser code, decrement budgets, retry execution,
+analyze or publish results, or qualify serving behavior. Hashes establish content equality, not
 observation authenticity, safety, or authorization. See
 [the protocol](docs/contracts/evaluation-protocol.md) and
 [the roadmap](docs/roadmap.md) for the boundary.
