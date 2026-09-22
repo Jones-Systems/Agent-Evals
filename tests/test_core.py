@@ -437,6 +437,19 @@ class PortableCoreTests(unittest.TestCase):
                 with self.subTest(path=path.name), self.assertRaises(e.EvaluationError):
                     _read_record(str(path))
 
+    def test_cli_reader_refuses_missing_required_open_safeguards(self) -> None:
+        import agent_evals.cli as cli
+
+        for safeguard in ("O_NOFOLLOW", "O_NONBLOCK"):
+            with (
+                self.subTest(safeguard=safeguard),
+                patch.object(cli.os, safeguard, None),
+                patch.object(cli.os, "open") as opened,
+                self.assertRaises(e.EvaluationError),
+            ):
+                cli._read_record("selected.json")
+            opened.assert_not_called()
+
     def test_cli_reader_bounds_growth_on_one_descriptor_and_always_closes(self) -> None:
         from agent_evals.cli import _read_record
 

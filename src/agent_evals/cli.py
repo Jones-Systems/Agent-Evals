@@ -16,9 +16,10 @@ from .core import (
 
 def _read_record(path: str) -> object:
     """Read one regular file from one descriptor, bounded across size changes."""
-    flags = os.O_RDONLY
-    for safeguard in ("O_CLOEXEC", "O_NOFOLLOW", "O_NONBLOCK"):
-        flags |= getattr(os, safeguard, 0)
+    required = (getattr(os, "O_NOFOLLOW", None), getattr(os, "O_NONBLOCK", None))
+    if any(type(flag) is not int or flag == 0 for flag in required):
+        raise EvaluationError("safe record reader unavailable")
+    flags = os.O_RDONLY | required[0] | required[1] | getattr(os, "O_CLOEXEC", 0)
     try:
         descriptor = os.open(path, flags)
     except OSError as exc:
