@@ -1,0 +1,192 @@
+[
+  {
+    "data": {
+      "assets": [
+        {
+          "path": "AGENTS.md",
+          "text": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n"
+        },
+        {
+          "path": "docs/engineering-specs/backlog-project-capability-system.md",
+          "text": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n"
+        },
+        {
+          "path": "docs/backlog/items/BL-0001.md",
+          "text": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: ready\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n"
+        },
+        {
+          "path": "docs/backlog/registry.md",
+          "text": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | ready | P2 | improvement |  | items/BL-0001.md |\n"
+        }
+      ],
+      "case_id": "backlog-explicit",
+      "context": "Synthetic evaluation task, not live work.",
+      "human_review_required": false,
+      "output_paths": [],
+      "prompt": "$backlog Defer BL-0001 because Awaiting fixture results. Resume when Fixture results are recorded. Use the fixed fixture date 2026-09-05 and history note fixture deferral.",
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "skill_name": "backlog",
+      "trigger": "explicit",
+      "version": 1
+    },
+    "kind": "Case",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "assets": [
+        {
+          "path": "AGENTS.md",
+          "text": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n"
+        },
+        {
+          "path": "docs/engineering-specs/backlog-project-capability-system.md",
+          "text": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n"
+        },
+        {
+          "path": "docs/backlog/items/BL-0001.md",
+          "text": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: ready\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n"
+        },
+        {
+          "path": "docs/backlog/registry.md",
+          "text": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | ready | P2 | improvement |  | items/BL-0001.md |\n"
+        }
+      ],
+      "case_id": "backlog-implicit",
+      "context": "Synthetic evaluation task, not live work.",
+      "human_review_required": false,
+      "output_paths": [],
+      "prompt": "Defer backlog item BL-0001 because Awaiting fixture results. Resume when Fixture results are recorded. Use the fixed fixture date 2026-09-05 and history note fixture deferral.",
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "skill_name": "backlog",
+      "trigger": "implicit",
+      "version": 1
+    },
+    "kind": "Case",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "assets": [
+        {
+          "path": "AGENTS.md",
+          "text": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n"
+        },
+        {
+          "path": "docs/engineering-specs/backlog-project-capability-system.md",
+          "text": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n"
+        },
+        {
+          "path": "docs/backlog/items/BL-0001.md",
+          "text": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: ready\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n"
+        },
+        {
+          "path": "docs/backlog/registry.md",
+          "text": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | ready | P2 | improvement |  | items/BL-0001.md |\n"
+        }
+      ],
+      "case_id": "backlog-contextual",
+      "context": "Synthetic repository context: selected backlog item is BL-0001. The requested action changes only its backlog lifecycle.",
+      "human_review_required": false,
+      "output_paths": [],
+      "prompt": "Keep the selected item for later because Awaiting fixture results. Resume when Fixture results are recorded. Use the fixed fixture date 2026-09-05 and history note fixture deferral.",
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "skill_name": "backlog",
+      "trigger": "contextual",
+      "version": 1
+    },
+    "kind": "Case",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "assets": [
+        {
+          "path": "AGENTS.md",
+          "text": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n"
+        },
+        {
+          "path": "docs/engineering-specs/backlog-project-capability-system.md",
+          "text": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n"
+        },
+        {
+          "path": "docs/backlog/items/BL-0001.md",
+          "text": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: ready\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n"
+        },
+        {
+          "path": "docs/backlog/registry.md",
+          "text": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | ready | P2 | improvement |  | items/BL-0001.md |\n"
+        }
+      ],
+      "case_id": "backlog-near-miss",
+      "context": "Synthetic terminology question; no repository backlog request.",
+      "human_review_required": false,
+      "output_paths": [],
+      "prompt": "Explain what backlog means for a listening socket in one sentence. Do not change repository files.",
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "skill_name": "backlog",
+      "trigger": "near_miss",
+      "version": 1
+    },
+    "kind": "Case",
+    "schema": "codex.skill-evaluation/v1"
+  },
+  {
+    "data": {
+      "assets": [
+        {
+          "path": "AGENTS.md",
+          "text": "# Fixture instructions\n\nThis is a public-safe synthetic repository. Only the supplied backlog item and registry may change when the task requests an edit. Preserve all other files. No network, credentials, Git mutation or external Issues. The adapter supplies an isolated non-main fixture workspace with one writer.\n"
+        },
+        {
+          "path": "docs/engineering-specs/backlog-project-capability-system.md",
+          "text": "# Fixture backlog contract\n\nArtifact ID: `spec.backlog-project-capability-system`\n\nThis is a bounded fixture excerpt, not the live repository specification. Markdown item documents and registry are canonical. Validate both before and after edits. Deferral requires defer_reason and resume_when. Preserve ID and history; no issue creation or claims of delivery. Use the available backlog helper or codex-v3-backlog.\n"
+        },
+        {
+          "path": "docs/backlog/items/BL-0001.md",
+          "text": "---\nschema: backlog-item/v1\nid: BL-0001\nproject: fixture-project\ntitle: Fixture pickup task\nstate: ready\nbacklog_priority: P2\nprimary_type: improvement\nsummary: Synthetic task used only to exercise evaluation plumbing.\nfirst_action: Inspect the fixture item.\nprovenance_note: Synthetic evaluation fixture, not pending live work.\n---\n\n## Summary\n\nA synthetic fixture task.\n\n## Why retain\n\nTest controlled skill behavior.\n\n## First action\n\nInspect the fixture item.\n"
+        },
+        {
+          "path": "docs/backlog/registry.md",
+          "text": "# Backlog registry\n\n| ID | Project | Title | State | Backlog priority | Type | Trigger or blocker | Document |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| BL-0001 | fixture-project | Fixture pickup task | ready | P2 | improvement |  | items/BL-0001.md |\n"
+        }
+      ],
+      "case_id": "backlog-negative-control",
+      "context": "Synthetic unrelated response task; no backlog operation.",
+      "human_review_required": false,
+      "output_paths": [],
+      "prompt": "Return the literal word ready. Do not inspect or edit repository records.",
+      "provenance": {
+        "kind": "fixture",
+        "public_safe_reviewed": true,
+        "revision": "v1",
+        "source_id": "backlog-behavior-pilot"
+      },
+      "skill_name": "backlog",
+      "trigger": "negative_control",
+      "version": 1
+    },
+    "kind": "Case",
+    "schema": "codex.skill-evaluation/v1"
+  }
+]

@@ -1,0 +1,972 @@
+{
+  "$defs": {
+    "Assessment": {
+      "additionalProperties": false,
+      "properties": {
+        "intended_runtime": {
+          "$ref": "#/$defs/RuntimeTuple"
+        },
+        "measures": {
+          "items": {
+            "$ref": "#/$defs/Measure"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "observed_runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeTuple"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "packet_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "runtime_evidence_id": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "unavailable",
+            "inconclusive"
+          ]
+        }
+      },
+      "required": [
+        "provenance",
+        "packet_sha256",
+        "intended_runtime",
+        "observed_runtime",
+        "runtime_evidence_id",
+        "status",
+        "measures"
+      ],
+      "type": "object"
+    },
+    "Asset": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "text"
+      ],
+      "type": "object"
+    },
+    "Case": {
+      "additionalProperties": false,
+      "properties": {
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "case_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "context": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "output_paths": {
+          "items": {
+            "maxLength": 32768,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "prompt": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "skill_name": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "explicit",
+            "implicit",
+            "contextual",
+            "near_miss",
+            "negative_control"
+          ]
+        },
+        "version": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "case_id",
+        "version",
+        "provenance",
+        "trigger",
+        "skill_name",
+        "prompt",
+        "context",
+        "assets",
+        "human_review_required",
+        "output_paths"
+      ],
+      "type": "object"
+    },
+    "Check": {
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "dimension": {
+          "enum": [
+            "quality",
+            "process",
+            "style",
+            "reliability",
+            "efficiency"
+          ]
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "maximum": 1000000000000000,
+              "minimum": -1000000000000000,
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "operation": {
+          "enum": [
+            "file_equals",
+            "response_equals",
+            "response_contains",
+            "response_max_chars",
+            "event_present",
+            "event_absent",
+            "skill_activation",
+            "unchanged",
+            "metric_at_most",
+            "completed"
+          ]
+        },
+        "target": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "dimension",
+        "operation",
+        "target",
+        "expected"
+      ],
+      "type": "object"
+    },
+    "CheckResult": {
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "dimension": {
+          "enum": [
+            "quality",
+            "process",
+            "style",
+            "reliability",
+            "efficiency"
+          ]
+        },
+        "passed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "check_id",
+        "dimension",
+        "passed"
+      ],
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "observation": {
+          "$ref": "#/$defs/Observation"
+        }
+      },
+      "required": [
+        "observation",
+        "assets"
+      ],
+      "type": "object"
+    },
+    "HumanReview": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "approved",
+            "rejected",
+            "pending"
+          ]
+        },
+        "evidence_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "rubric_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "provenance",
+        "evidence_sha256",
+        "rubric_sha256",
+        "decision"
+      ],
+      "type": "object"
+    },
+    "Measure": {
+      "additionalProperties": false,
+      "properties": {
+        "dimension": {
+          "enum": [
+            "quality",
+            "process",
+            "style",
+            "reliability",
+            "efficiency"
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "dimension",
+        "value"
+      ],
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000,
+              "minimum": -1000000000000000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000,
+              "minimum": -1000000000000000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_calls": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000000,
+              "minimum": -1000000000000000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "wall_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "wall_ms",
+        "input_tokens",
+        "output_tokens",
+        "tool_calls"
+      ],
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 32768,
+                "type": "string"
+              },
+              "maxItems": 64,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metrics": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "observed_runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeTuple"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "response": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "runtime_evidence_id": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable"
+          ]
+        }
+      },
+      "required": [
+        "provenance",
+        "observed_runtime",
+        "runtime_evidence_id",
+        "status",
+        "response",
+        "events",
+        "metrics"
+      ],
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fixture",
+            "public_organic",
+            "runtime",
+            "deterministic",
+            "judge",
+            "human",
+            "control"
+          ]
+        },
+        "public_safe_reviewed": {
+          "type": "boolean"
+        },
+        "revision": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "source_id": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source_id",
+        "revision",
+        "public_safe_reviewed"
+      ],
+      "type": "object"
+    },
+    "Rubric": {
+      "additionalProperties": false,
+      "properties": {
+        "case_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/Check"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "judge_instructions": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "judge_required": {
+          "type": "boolean"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "rubric_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "version": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rubric_id",
+        "version",
+        "provenance",
+        "case_sha256",
+        "checks",
+        "judge_required",
+        "judge_instructions"
+      ],
+      "type": "object"
+    },
+    "Run": {
+      "additionalProperties": false,
+      "properties": {
+        "arm": {
+          "enum": [
+            "baseline",
+            "skill",
+            "do_nothing"
+          ]
+        },
+        "case_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Evidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_sha256": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "intended_runtime": {
+          "$ref": "#/$defs/RuntimeTuple"
+        },
+        "mode": {
+          "enum": [
+            "fixture",
+            "calibration",
+            "serving"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "observed",
+            "no_adapter",
+            "adapter_error",
+            "unsafe_evidence",
+            "runtime_unverified",
+            "tuple_mismatch",
+            "no_op"
+          ]
+        },
+        "run_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "unavailable",
+            "invalid",
+            "partial",
+            "inconclusive"
+          ]
+        },
+        "variant_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "case_sha256",
+        "variant_sha256",
+        "input_sha256",
+        "arm",
+        "mode",
+        "intended_runtime",
+        "status",
+        "reason",
+        "evidence",
+        "evidence_sha256"
+      ],
+      "type": "object"
+    },
+    "RuntimeTuple": {
+      "additionalProperties": false,
+      "properties": {
+        "effort": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_revision": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runtime": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runtime_revision": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "model_revision",
+        "effort",
+        "runtime",
+        "runtime_revision"
+      ],
+      "type": "object"
+    },
+    "Score": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Assessment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/CheckResult"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "evidence_sha256": {
+          "anyOf": [
+            {
+              "maxLength": 32768,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "grader": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "human_review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HumanReview"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measures": {
+          "items": {
+            "$ref": "#/$defs/Measure"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "rubric_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "run_sha256": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "unavailable",
+            "invalid",
+            "partial",
+            "inconclusive"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "passed",
+            "failed",
+            "not_scored"
+          ]
+        }
+      },
+      "required": [
+        "run_sha256",
+        "rubric_sha256",
+        "evidence_sha256",
+        "grader",
+        "status",
+        "verdict",
+        "checks",
+        "measures",
+        "assessment",
+        "human_review"
+      ],
+      "type": "object"
+    },
+    "Variant": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "skill_name": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "skill_text": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "variant_id": {
+          "maxLength": 32768,
+          "type": "string"
+        },
+        "version": {
+          "maximum": 1000000000000000,
+          "minimum": -1000000000000000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "variant_id",
+        "version",
+        "provenance",
+        "skill_name",
+        "skill_text"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Case"
+        },
+        "kind": {
+          "const": "Case"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Variant"
+        },
+        "kind": {
+          "const": "Variant"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Rubric"
+        },
+        "kind": {
+          "const": "Rubric"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Run"
+        },
+        "kind": {
+          "const": "Run"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Score"
+        },
+        "kind": {
+          "const": "Score"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/Assessment"
+        },
+        "kind": {
+          "const": "Assessment"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/HumanReview"
+        },
+        "kind": {
+          "const": "HumanReview"
+        },
+        "schema": {
+          "const": "codex.skill-evaluation/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "data"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "codex.skill-evaluation/v1"
+}

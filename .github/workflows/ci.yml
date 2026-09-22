@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    uses: Jones-Systems/GitHub-Actions/.github/workflows/python-ci.yml@b0d4576f7724d0b7f748d481675fea62b295c95d
+    with:
+      linux-python-versions: '["3.11", "3.12", "3.13"]'
+      uv-cache-mode: "false"
+      compile-command: "python -m compileall -q src tests"
+      test-command: "PYTHONPATH=src python -m unittest discover -s tests -v"
+      package-enabled: true
+      package-python-version: "3.13"
+      package-build-command: "uv build"
+      package-smoke-command: >-
+        uv run --isolated --no-project
+        --with ./dist/agent_evals-0.1.0-py3-none-any.whl
+        python -c 'import agent_evals; assert agent_evals.SCHEMA == "codex.skill-evaluation/v1"'
+      artifact-name: agent-evals
