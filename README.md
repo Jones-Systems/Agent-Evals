@@ -12,14 +12,33 @@ summaries, and prepares neutral-label analysis packets without executing models.
 The package requires Python 3.11 or later and has no runtime dependencies.
 
     python -m pip install .
-    agent-evals schema
-    agent-evals parse record.json
+    agent-evals schema list
+    agent-evals schema show --name codex.skill-evaluation/v1
+    agent-evals capabilities
+    agent-evals suite validate --input cases.json --input rubrics.json
+    agent-evals campaign compile --input campaign.json
     agent-evals grade --case case.json --run run.json --rubric rubric.json
+    agent-evals conformance
 
-parse accepts one closed record envelope. The fixture catalogs in tests/ are
-JSON arrays, so applications should decode each catalog entry individually.
-grade and its compatibility alias rescore operate only on already-preserved
-evidence; they never run an agent.
+Every invocation emits exactly one closed JSON document on stdout. Completed
+commands use exit 0, including valid failed or inconclusive evaluations.
+Malformed or binding-invalid inputs use exit 2; unavailable workspace or live
+execution capabilities use exit 3. Diagnostics contain only fixed reason codes,
+not input text, exceptions, or selected paths.
+
+`suite validate` accepts one or more explicit `--input` files containing a
+closed record or a JSON array of closed records. `grade` and `rescore` operate
+only on already-preserved evidence. `compare` requires three explicit `--run`
+and three explicit `--score` selectors. The legacy `schema` and `parse`
+commands remain available for compatibility.
+
+The publication commands require an existing explicit local object-store root,
+a resolved campaign file, and content-reference selector files. A selector is
+the closed JSON object containing `digest`, `byte_size`, `media_type`,
+`record_schema`, and `access_class`. `result-set seal` additionally consumes an
+explicit JSON array of closed result-set entry objects. `manifest write`,
+`analysis packet`, and `analysis unblind` write only immutable records to that
+selected local store. They do not publish remotely or execute analysis.
 
 Library callers can use the same operations directly:
 
@@ -31,6 +50,13 @@ Library callers can use the same operations directly:
 Campaign callers construct a `CampaignSpec` and call `compile_campaign`. The
 result contains stable trial identities and requested execution profiles only;
 it does not create jobs, attempts, workspaces, or runtime observations.
+
+The offline CLI never discovers inputs from the current working directory and
+does not install software, create workspaces, access credentials, submit to a
+provider or model, retry an execution, operate a connector, invoke native
+execution, publish remotely, promote, or delete. `capabilities` reports those
+boundaries directly. `conformance` validates packaged schemas and the portable
+import boundary without requiring a repository checkout.
 
 ## Architecture and status
 
@@ -69,6 +95,10 @@ protocol layers will receive their own versioned identities.
 Focused publication/analysis checks are:
 
     PYTHONPATH=src:tests python -m unittest test_object_store test_publication -v
+
+Focused offline CLI and conformance checks are:
+
+    PYTHONPATH=src:tests python -m unittest test_cli -v
 
 `tests/check-groups.toml` records the module contract for each layer. Full
 discovery remains the conservative checkpoint and CI command.

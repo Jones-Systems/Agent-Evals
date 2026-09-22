@@ -11,3 +11,7 @@ modules = ["test_campaign"]
 [groups.publication-analysis]
 summary = "Immutable atomic storage, sealing, closed public projection, and blinded analysis bindings"
 modules = ["test_object_store", "test_publication"]
+
+[groups.offline-cli]
+summary = "Closed-JSON offline CLI, conformance, import boundaries, and installed-wheel execution"
+modules = ["test_cli"]
