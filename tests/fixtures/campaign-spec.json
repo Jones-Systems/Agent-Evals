@@ -1,0 +1,260 @@
+{
+  "data": {
+    "arms": [
+      "baseline",
+      "skill",
+      "control"
+    ],
+    "budget_policy": {
+      "exhaustion_disposition": "reject",
+      "limits": [
+        {
+          "maximum": 20,
+          "metric": "input_tokens",
+          "scope": "trial",
+          "unit": "tokens"
+        },
+        {
+          "maximum": 1000,
+          "metric": "input_tokens",
+          "scope": "campaign",
+          "unit": "tokens"
+        },
+        {
+          "maximum": 4,
+          "metric": "tool_calls",
+          "scope": "trial",
+          "unit": "calls"
+        },
+        {
+          "maximum": 1000,
+          "metric": "tool_calls",
+          "scope": "campaign",
+          "unit": "calls"
+        }
+      ]
+    },
+    "campaign_id": "campaign-fixture",
+    "cases": [
+      {
+        "case_id": "case-a",
+        "case_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      {
+        "case_id": "case-b",
+        "case_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "input_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ],
+    "counterbalance": {
+      "algorithm_revision": "agent-evals-counterbalance-v1",
+      "method": "fixed",
+      "seed": 1
+    },
+    "input_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "intentionally_varied_dimensions": [
+      "model"
+    ],
+    "outcome_policy": {
+      "analysis_unit": "trial",
+      "failure_rule": "count_as_failure",
+      "lower_bound": 0.0,
+      "missingness_rule": "report_separately",
+      "outcome": "pass_rate",
+      "retry_rule": "no_retry",
+      "uncertainty_rule": "descriptive_only",
+      "upper_bound": 1.0
+    },
+    "profile_matrix": [
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "baseline",
+        "case_id": "case-a",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-a",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      },
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "skill",
+        "case_id": "case-a",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-b",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      },
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "control",
+        "case_id": "case-a",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-a",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      },
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "baseline",
+        "case_id": "case-b",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-a",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      },
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "skill",
+        "case_id": "case-b",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-b",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      },
+      {
+        "allocations": [
+          {
+            "maximum": 10,
+            "metric": "input_tokens",
+            "scope": "trial",
+            "unit": "tokens"
+          },
+          {
+            "maximum": 2,
+            "metric": "tool_calls",
+            "scope": "trial",
+            "unit": "calls"
+          }
+        ],
+        "arm_id": "control",
+        "case_id": "case-b",
+        "requested_profile": {
+          "agent_topology": "single",
+          "model": "model-a",
+          "model_revision": "r1",
+          "network_policy_ref": "network:none",
+          "provider": "example-provider",
+          "reasoning": "medium",
+          "runtime": "agent-runtime",
+          "runtime_revision": "r1",
+          "surface": "api",
+          "tool_policy_ref": "tools:v1"
+        }
+      }
+    ],
+    "repetitions": 2,
+    "safety_stop_policy_refs": [
+      "safety:default-v1"
+    ],
+    "suite_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "version": 1
+  },
+  "kind": "CampaignSpec",
+  "schema": "codex.agent-evals-campaign-spec/v1"
+}

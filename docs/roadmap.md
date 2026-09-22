@@ -1,13 +1,13 @@
 # Roadmap
 
-The current release is the portable deterministic core only: closed records,
-validation, content hashing, schema emission, fixture parsing, grading,
-rescoring, blinded judge packets, and comparison.
+The current stack contains the portable deterministic core plus closed,
+workspace-independent campaign specification and deterministic compilation.
+Campaign compilation resolves requested profiles, bounded allocations, stable
+trial identities, and fixed or balanced ordering; it performs no execution.
 
 Future, excluded layers may define independently versioned contracts and
 implementations for:
 
-- suites and immutable campaign compilation;
 - workspace materialization, isolation, capture, and settlement backends;
 - native/local agent execution backends;
 - provider-specific and connector/browser execution backends;

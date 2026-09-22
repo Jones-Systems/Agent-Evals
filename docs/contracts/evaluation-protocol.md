@@ -60,6 +60,27 @@ No command creates a workspace, executes an agent, contacts a provider, imports
 connector/browser code, installs software, publishes results, promotes a skill,
 changes credentials, or claims serving qualification.
 
+## Campaign compilation
+
+The independent `codex.agent-evals-campaign-spec/v1` contract binds exact
+suite, input, case, and requested-profile identities; a complete case-by-arm
+profile matrix; repetitions; declared profile variance; outcome handling;
+compile-time budget bounds; safety-policy references; and a revisioned
+counterbalance policy. Profiles describe requests only and contain no observed
+runtime fields.
+
+Compilation produces `codex.agent-evals-resolved-campaign/v1`. Every ordered
+trial covers one case, arm, and repetition. Its stable ID derives only from the
+campaign-spec digest, case, arm, repetition, and evaluation stage. Compiler and
+counterbalance revisions are explicit. Fixed order preserves declared arm
+order; balanced rotation rotates it deterministically, including when the
+repetition count does not complete a rotation cycle.
+
+Budget limits are allocation bounds checked during compilation. They do not
+represent mutable counters or observed spend. The campaign contracts and
+compiler do not create workspaces, jobs, queue records, operational attempts,
+runtime observations, retries, analyses, publications, or significance claims.
+
 ## Backend boundary
 
 Workspace, native execution, provider, and connector/browser backends are
