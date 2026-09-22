@@ -1,0 +1,13 @@
+schema = "agent-evals-check-groups/v1"
+
+[groups.portable-core]
+summary = "Portable core compatibility and deterministic grading"
+modules = ["test_core"]
+
+[groups.campaign]
+summary = "Deterministic campaign compilation and requested profiles"
+modules = ["test_campaign"]
+
+[groups.publication-analysis]
+summary = "Immutable atomic storage, sealing, closed public projection, and blinded analysis bindings"
+modules = ["test_object_store", "test_publication"]

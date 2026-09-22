@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-result-set/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-result-set/v1"
+    },
+    "kind": {
+      "const": "SealedResultSet"
+    },
+    "data": {
+      "$ref": "#/$defs/SealedResultSet"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "SealedResultSet": {
+      "type": "object",
+      "properties": {
+        "campaign_sha256": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": -1000000000000000,
+          "maximum": 1000000000000000
+        },
+        "predecessor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResultSetEntry"
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "campaign_sha256",
+        "revision",
+        "predecessor",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "ContentRef": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "media_type": {
+          "enum": [
+            "application/json",
+            "text/plain"
+          ]
+        },
+        "record_schema": {
+          "enum": [
+            "codex.agent-evals-evidence/v1",
+            "codex.agent-evals-execution-import/v1",
+            "codex.agent-evals-result-set/v1",
+            "codex.agent-evals-public-summary/v1",
+            "codex.agent-evals-public-manifest/v1",
+            "codex.agent-evals-analysis-spec/v1",
+            "codex.agent-evals-blinded-packet/v1",
+            "codex.agent-evals-neutral-mapping/v1",
+            "codex.agent-evals-analysis-result/v1",
+            "codex.agent-evals-comparison/v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        }
+      },
+      "required": [
+        "digest",
+        "byte_size",
+        "media_type",
+        "record_schema",
+        "access_class"
+      ],
+      "additionalProperties": false
+    },
+    "ResultSetEntry": {
+      "type": "object",
+      "properties": {
+        "trial_id": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "execution_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "classification": {
+          "enum": [
+            "usable",
+            "incomplete",
+            "unavailable",
+            "invalid"
+          ]
+        },
+        "missingness": {
+          "enum": [
+            "present",
+            "missing"
+          ]
+        },
+        "evidence_verification": {
+          "enum": [
+            "verified",
+            "missing"
+          ]
+        }
+      },
+      "required": [
+        "trial_id",
+        "execution_ref",
+        "evidence_ref",
+        "classification",
+        "missingness",
+        "evidence_verification"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-analysis-result/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-analysis-result/v1"
+    },
+    "kind": {
+      "const": "AnalysisResult"
+    },
+    "data": {
+      "$ref": "#/$defs/AnalysisResult"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "AnalysisResult": {
+      "type": "object",
+      "properties": {
+        "packet_ref": {
+          "$ref": "#/$defs/ContentRef"
+        },
+        "mapping_sha256": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "requested_profile_sha256": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_profile_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 32768
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "complete",
+            "inconclusive",
+            "unavailable"
+          ]
+        },
+        "measures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnalysisMeasure"
+          },
+          "maxItems": 100000
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": -1000000000000000,
+          "maximum": 1000000000000000
+        },
+        "predecessor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "packet_ref",
+        "mapping_sha256",
+        "requested_profile_sha256",
+        "observed_profile_sha256",
+        "status",
+        "measures",
+        "revision",
+        "predecessor"
+      ],
+      "additionalProperties": false
+    },
+    "ContentRef": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "media_type": {
+          "enum": [
+            "application/json",
+            "text/plain"
+          ]
+        },
+        "record_schema": {
+          "enum": [
+            "codex.agent-evals-evidence/v1",
+            "codex.agent-evals-execution-import/v1",
+            "codex.agent-evals-result-set/v1",
+            "codex.agent-evals-public-summary/v1",
+            "codex.agent-evals-public-manifest/v1",
+            "codex.agent-evals-analysis-spec/v1",
+            "codex.agent-evals-blinded-packet/v1",
+            "codex.agent-evals-neutral-mapping/v1",
+            "codex.agent-evals-analysis-result/v1",
+            "codex.agent-evals-comparison/v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        }
+      },
+      "required": [
+        "digest",
+        "byte_size",
+        "media_type",
+        "record_schema",
+        "access_class"
+      ],
+      "additionalProperties": false
+    },
+    "AnalysisMeasure": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
