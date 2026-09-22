@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-public-manifest/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-public-manifest/v1"
+    },
+    "kind": {
+      "const": "PublishedResultManifest"
+    },
+    "data": {
+      "$ref": "#/$defs/PublishedResultManifest"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "PublishedResultManifest": {
+      "type": "object",
+      "properties": {
+        "result_set_sha256": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "summaries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PublicContentRef"
+          },
+          "maxItems": 100000
+        },
+        "redaction_revision": {
+          "enum": [
+            "closed-projection-v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "public"
+          ]
+        },
+        "retention_policy_sha256": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "result_set_sha256",
+        "summaries",
+        "redaction_revision",
+        "access_class",
+        "retention_policy_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "PublicContentRef": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "media_type": {
+          "enum": [
+            "application/json"
+          ]
+        },
+        "record_schema": {
+          "enum": [
+            "codex.agent-evals-public-summary/v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "public"
+          ]
+        }
+      },
+      "required": [
+        "digest",
+        "byte_size",
+        "media_type",
+        "record_schema",
+        "access_class"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

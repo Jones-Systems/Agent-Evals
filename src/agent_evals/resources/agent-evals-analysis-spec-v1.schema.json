@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-analysis-spec/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-analysis-spec/v1"
+    },
+    "kind": {
+      "const": "AnalysisSpec"
+    },
+    "data": {
+      "$ref": "#/$defs/AnalysisSpec"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "AnalysisSpec": {
+      "type": "object",
+      "properties": {
+        "rubric": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "instructions": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "lower_bound": {
+          "type": "number"
+        },
+        "upper_bound": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "rubric",
+        "instructions",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

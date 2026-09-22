@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-evidence/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-evidence/v1"
+    },
+    "kind": {
+      "const": "AdmittedEvidence"
+    },
+    "data": {
+      "$ref": "#/$defs/AdmittedEvidence"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "AdmittedEvidence": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "response",
+        "outputs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

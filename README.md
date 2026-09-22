@@ -4,6 +4,8 @@ Agent-Evals provides a workspace-independent, standard-library-first Python
 core for validating, hashing, grading, and comparing bounded agent-evaluation
 records. It also compiles closed campaign specifications into deterministic,
 workspace-independent trial plans. Each layer has an independent wire contract.
+An immutable local object store seals imported results, emits closed public
+summaries, and prepares neutral-label analysis packets without executing models.
 
 ## Install and use
 
@@ -46,6 +48,15 @@ observation authenticity, safety, or authorization. See
 [the protocol](docs/contracts/evaluation-protocol.md) and
 [the roadmap](docs/roadmap.md) for the boundary.
 
+The publication layer accepts explicit `AdmittedEvidence` and
+`ExecutionResultImport` records through `ObjectStore`. `seal_result_set` binds
+every campaign trial and verifies all referenced bytes before persisting a
+canonical revision. `publish_manifest` creates immutable local public summaries;
+it does not upload data or configure access controls. `blind_result_set` creates
+a packet and a separate private mapping. `import_analysis_result` validates an
+externally supplied result; `unblind` requires a persisted terminal result and
+the original verified mapping. See [the result contract](docs/contracts/results-and-analysis.md).
+
 The package is alpha software. codex.skill-evaluation/v1 compatibility is
 covered by transferred fixtures and parity tests, while future portable
 protocol layers will receive their own versioned identities.
@@ -54,6 +65,13 @@ protocol layers will receive their own versioned identities.
 
     PYTHONPATH=src python -m unittest discover -s tests -v
     uv build
+
+Focused publication/analysis checks are:
+
+    PYTHONPATH=src:tests python -m unittest test_object_store test_publication -v
+
+`tests/check-groups.toml` records the module contract for each layer. Full
+discovery remains the conservative checkpoint and CI command.
 
 The consumer-owned CI caller tests Python 3.11, 3.12, and 3.13, builds both
 distribution formats, and imports the installed wheel.

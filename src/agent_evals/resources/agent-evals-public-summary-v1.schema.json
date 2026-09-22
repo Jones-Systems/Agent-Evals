@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-public-summary/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-public-summary/v1"
+    },
+    "kind": {
+      "const": "PublicSummary"
+    },
+    "data": {
+      "$ref": "#/$defs/PublicSummary"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "PublicSummary": {
+      "type": "object",
+      "properties": {
+        "classification": {
+          "enum": [
+            "usable",
+            "incomplete",
+            "unavailable",
+            "invalid"
+          ]
+        },
+        "missingness": {
+          "enum": [
+            "present",
+            "missing"
+          ]
+        }
+      },
+      "required": [
+        "classification",
+        "missingness"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

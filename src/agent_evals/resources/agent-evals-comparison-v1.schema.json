@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-comparison/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-comparison/v1"
+    },
+    "kind": {
+      "const": "UnblindedComparison"
+    },
+    "data": {
+      "$ref": "#/$defs/UnblindedComparison"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "UnblindedComparison": {
+      "type": "object",
+      "properties": {
+        "analysis_result_ref": {
+          "$ref": "#/$defs/ContentRef"
+        },
+        "mapping_ref": {
+          "$ref": "#/$defs/ContentRef"
+        },
+        "measures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ComparisonMeasure"
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "analysis_result_ref",
+        "mapping_ref",
+        "measures"
+      ],
+      "additionalProperties": false
+    },
+    "ContentRef": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "media_type": {
+          "enum": [
+            "application/json",
+            "text/plain"
+          ]
+        },
+        "record_schema": {
+          "enum": [
+            "codex.agent-evals-evidence/v1",
+            "codex.agent-evals-execution-import/v1",
+            "codex.agent-evals-result-set/v1",
+            "codex.agent-evals-public-summary/v1",
+            "codex.agent-evals-public-manifest/v1",
+            "codex.agent-evals-analysis-spec/v1",
+            "codex.agent-evals-blinded-packet/v1",
+            "codex.agent-evals-neutral-mapping/v1",
+            "codex.agent-evals-analysis-result/v1",
+            "codex.agent-evals-comparison/v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        }
+      },
+      "required": [
+        "digest",
+        "byte_size",
+        "media_type",
+        "record_schema",
+        "access_class"
+      ],
+      "additionalProperties": false
+    },
+    "ComparisonMeasure": {
+      "type": "object",
+      "properties": {
+        "trial_id": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "arm_id": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "trial_id",
+        "arm_id",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

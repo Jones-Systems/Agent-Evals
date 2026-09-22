@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-neutral-mapping/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-neutral-mapping/v1"
+    },
+    "kind": {
+      "const": "NeutralLabelMapping"
+    },
+    "data": {
+      "$ref": "#/$defs/NeutralLabelMapping"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "NeutralLabelMapping": {
+      "type": "object",
+      "properties": {
+        "result_set_ref": {
+          "$ref": "#/$defs/ContentRef"
+        },
+        "packet_ref": {
+          "$ref": "#/$defs/ContentRef"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NeutralMappingEntry"
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "result_set_ref",
+        "packet_ref",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "ContentRef": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "media_type": {
+          "enum": [
+            "application/json",
+            "text/plain"
+          ]
+        },
+        "record_schema": {
+          "enum": [
+            "codex.agent-evals-evidence/v1",
+            "codex.agent-evals-execution-import/v1",
+            "codex.agent-evals-result-set/v1",
+            "codex.agent-evals-public-summary/v1",
+            "codex.agent-evals-public-manifest/v1",
+            "codex.agent-evals-analysis-spec/v1",
+            "codex.agent-evals-blinded-packet/v1",
+            "codex.agent-evals-neutral-mapping/v1",
+            "codex.agent-evals-analysis-result/v1",
+            "codex.agent-evals-comparison/v1"
+          ]
+        },
+        "access_class": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        }
+      },
+      "required": [
+        "digest",
+        "byte_size",
+        "media_type",
+        "record_schema",
+        "access_class"
+      ],
+      "additionalProperties": false
+    },
+    "NeutralMappingEntry": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "trial_id": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "arm_id": {
+          "type": "string",
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "label",
+        "trial_id",
+        "arm_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

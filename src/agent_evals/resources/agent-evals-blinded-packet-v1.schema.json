@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codex.agent-evals-blinded-packet/v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "codex.agent-evals-blinded-packet/v1"
+    },
+    "kind": {
+      "const": "BlindedAnalysisPacket"
+    },
+    "data": {
+      "$ref": "#/$defs/BlindedAnalysisPacket"
+    }
+  },
+  "required": [
+    "schema",
+    "kind",
+    "data"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "BlindedAnalysisPacket": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "$ref": "#/$defs/AnalysisSpec"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NeutralEvidence"
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "spec",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "AnalysisSpec": {
+      "type": "object",
+      "properties": {
+        "rubric": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "instructions": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "lower_bound": {
+          "type": "number"
+        },
+        "upper_bound": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "rubric",
+        "instructions",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "additionalProperties": false
+    },
+    "NeutralEvidence": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdmittedEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "missingness": {
+          "enum": [
+            "present",
+            "missing"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "evidence",
+        "missingness"
+      ],
+      "additionalProperties": false
+    },
+    "AdmittedEvidence": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "maxItems": 100000
+        }
+      },
+      "required": [
+        "response",
+        "outputs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
