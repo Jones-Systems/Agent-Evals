@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
+import os
+import stat
 import sys
 
 from .core import (
@@ -14,12 +15,27 @@ from .core import (
 
 
 def _read_record(path: str) -> object:
-    selected = Path(path)
+    """Read one regular file from one descriptor, bounded across size changes."""
+    flags = os.O_RDONLY
+    for safeguard in ("O_CLOEXEC", "O_NOFOLLOW", "O_NONBLOCK"):
+        flags |= getattr(os, safeguard, 0)
     try:
-        info = selected.lstat()
-        if selected.is_symlink() or not selected.is_file() or info.st_size > MAX_BYTES:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise EvaluationError("unreadable record file") from exc
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
             raise EvaluationError("unsafe record file")
-        raw = selected.read_bytes()
+        chunks = []
+        remaining = MAX_BYTES + 1
+        while remaining:
+            chunk = os.read(descriptor, remaining)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        raw = b"".join(chunks)
         if len(raw) > MAX_BYTES:
             raise EvaluationError("record byte bound")
         return decode(raw.decode("utf-8"))
@@ -27,6 +43,13 @@ def _read_record(path: str) -> object:
         raise
     except (OSError, UnicodeError) as exc:
         raise EvaluationError("unreadable record file") from exc
+    finally:
+        active_error = sys.exc_info()[0] is not None
+        try:
+            os.close(descriptor)
+        except OSError as exc:
+            if not active_error:
+                raise EvaluationError("unreadable record file") from exc
 
 
 def _typed_record(path: str, record_type: type) -> object:
