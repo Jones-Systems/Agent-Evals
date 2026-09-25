@@ -15,3 +15,7 @@ modules = ["test_object_store", "test_publication"]
 [groups.offline-cli]
 summary = "Closed-JSON offline CLI, conformance, import boundaries, and installed-wheel execution"
 modules = ["test_cli"]
+
+[groups.public-readiness]
+summary = "Public licensing, contribution guidance, and GitHub-hosted CI trust boundary"
+modules = ["test_public_readiness"]
