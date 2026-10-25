@@ -6,7 +6,8 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: "31 6 * * *"
+    - cron: '0 4 * * *'
+      timezone: 'America/New_York'
 
 permissions:
   contents: read
